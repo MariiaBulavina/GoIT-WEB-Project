@@ -3,6 +3,8 @@ from typing import  Optional
 
 from pydantic import BaseModel, Field, EmailStr
 
+from src.database.models import UserRole
+
 
 class UserModel(BaseModel):
     username: str 

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from src.database.models import User
 from src.services.auth import auth_service
-from src.schemas import UserDb
+from src.schemas.users import UserDb
 from src.database.db import get_db
 from src.conf.config import settings
 from src.repository import users as repositories_users
