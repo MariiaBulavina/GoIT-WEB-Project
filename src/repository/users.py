@@ -1,8 +1,10 @@
 from libgravatar import Gravatar
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy import select, func
 
-from src.database.models import User
-from src.schemas.users import UserModel
+from src.database.models import User, UserRole, Post, Comment
+from src.schemas.users import UserModel, UserProfile
 
 
 async def get_user_by_email(email: str, db: Session) -> User:
@@ -82,3 +84,68 @@ async def update_avatar_url(email: str, url: str | None, db: Session) -> User:
     user.avatar = url
     db.commit()
     return user
+
+
+async def get_user_by_username(username: str, db: Session) -> User | None:
+    try:
+        user = db.query(User).filter(User.username == username).first()
+        return user
+    except NoResultFound:
+        return None
+
+
+async def change_role(email: str, role: UserRole, db: Session) -> User | None:
+
+    user = await get_user_by_email(email, db)
+    if user:
+        user.user_role = role
+        db.commit()
+        return user
+    return None
+
+
+async def ban_user(email: str, db: Session) -> User | None:
+
+    user = await get_user_by_email(email, db)
+    if user:
+        user.is_active = False
+        db.commit()
+        return user
+    return None
+        
+
+async def unban_user(email: str, db: Session) -> User | None:
+
+    user = await get_user_by_email(email, db)
+    if user:
+        user.is_active = True
+        db.commit()
+        return user
+    return None
+
+
+async def get_user_profile(user: User, db: Session):
+
+    if user:
+        find_posts = select(func.count()).where(Post.user_id == user.id) 
+        posts_number = db.execute(find_posts).scalar()
+
+        find_comments = select(func.count()).where(Comment.user_id == user.id) 
+        comments_number = db.execute(find_comments).scalar()
+        
+        user_profile = UserProfile(
+            id=user.id,
+            username=user.username,
+            email=user.email,
+            confirmed=user.confirmed,
+            avatar=user.avatar,
+            user_role=user.user_role,
+            is_active=user.is_active,
+            posts_number=posts_number,
+            comments_number=comments_number,
+            created_at=user.created_at,
+            updated_at=user.updated_at
+        )
+        return user_profile
+    
+    return None
