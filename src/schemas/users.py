@@ -1,5 +1,5 @@
-from datetime import datetime, date
-from typing import  Optional
+from datetime import datetime
+import enum
 
 from pydantic import BaseModel, Field, EmailStr
 
@@ -19,6 +19,7 @@ class UserDb(BaseModel):
     created_at: datetime
     updated_at: datetime
     avatar: str
+    user_role: UserRole
 
     class Config:
         from_attributes = True
@@ -37,3 +38,24 @@ class TokenModel(BaseModel):
 
 class RequestEmail(BaseModel):
     email: EmailStr
+
+
+class UserProfile(BaseModel):
+
+    id: int
+    username: str
+    email: EmailStr
+    confirmed: bool
+    avatar: str
+    user_role: UserRole
+    is_active: bool
+    posts_number: int 
+    comments_number: int 
+    created_at: datetime
+    updated_at: datetime
+
+
+class Action(enum.Enum):
+    change_user_role: str = 'change_user_role'
+    ban: str = 'ban'
+    unban: str = 'unban'
