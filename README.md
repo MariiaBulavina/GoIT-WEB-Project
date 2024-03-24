@@ -21,7 +21,7 @@
 
 * Admin and Moderator functions
 
-  ## Implemented functions
+## Implemented functions
 
 *  *Authentication*
 
