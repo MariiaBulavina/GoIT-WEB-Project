@@ -40,7 +40,7 @@ async def get_current_user(user: User = Depends(auth_service.get_current_user)):
     return user
 
 
-@router.patch('/avatar', response_model=UserDb)
+@router.patch('/me', response_model=UserDb)
 async def update_avatar_user(file: UploadFile = File(...), user: User = Depends(auth_service.get_current_user), db: Session = Depends(get_db)):
     """
     The update_avatar_user function updates the avatar of a user.
@@ -67,6 +67,17 @@ async def get_user_profile(username: str, db: Session = Depends(get_db)) -> User
 
     found_user = await repositories_users.get_user_by_username(username, db)
     
+    if found_user:
+        user = await repositories_users.get_user_profile(found_user, db)
+        return user
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
+    
+
+@router.get('/id/{user_id}', response_model=UserProfile)
+async def get_user_by_id(user_id: int, db: Session = Depends(get_db), user: User = Depends(auth_service.get_current_user)) -> User:
+
+    found_user = await repositories_users.get_user_by_id(user_id, db)
     if found_user:
         user = await repositories_users.get_user_profile(found_user, db)
         return user

@@ -36,8 +36,14 @@ async def create_user(body: UserModel, db: Session) -> User:
         avatar = g.get_image()
     except Exception as e:
         print(e)
+
+    check_users_exist = db.query(User).first()
         
     new_user = User(**body.model_dump(), avatar=avatar)
+
+    if not check_users_exist:
+        new_user.user_role = UserRole.admin
+
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -89,6 +95,14 @@ async def update_avatar_url(email: str, url: str | None, db: Session) -> User:
 async def get_user_by_username(username: str, db: Session) -> User | None:
     try:
         user = db.query(User).filter(User.username == username).first()
+        return user
+    except NoResultFound:
+        return None
+    
+
+async def get_user_by_id(user_id: int, db: Session) -> User | None:
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
         return user
     except NoResultFound:
         return None

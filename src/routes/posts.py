@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Request, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Request, Depends, HTTPException, UploadFile, File, status
 
 from src.database.db import get_db
 from src.repository import posts as posts_repository
 from src.schemas.posts import PostResponse
 from src.services.auth import auth_service
 from src.services.posts import post_service
+from src.database.models import UserRole
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
@@ -36,9 +37,13 @@ async def delete_post(
     db=Depends(get_db),
     user=Depends(auth_service.get_current_user),
 ):
-    post = await posts_repository.delete_post(post_id=post_id, user=user, db=db)
+    post = await posts_repository.delete_post(post_id=post_id, db=db)
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
+    
+    if post.user_id != user.id and user.user_role != UserRole.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to delete this post")
+    
     return post
 
 
@@ -51,10 +56,14 @@ async def edit_description(
     user=Depends(auth_service.get_current_user),
 ):
     post = await posts_repository.edit_description(
-        post_id=post_id, description=description, user=user, db=db
+        post_id=post_id, description=description, db=db
     )
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
+    
+    if post.user_id != user.id and user.user_role != UserRole.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to edit this post")
+    
     return post
 
 
@@ -74,7 +83,7 @@ async def get_post(
     db=Depends(get_db),
     user=Depends(auth_service.get_current_user),
 ):
-    post = await posts_repository.get_post(post_id=post_id, user=user, db=db)
+    post = await posts_repository.get_post(post_id=post_id, db=db)
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
     return post
