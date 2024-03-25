@@ -25,10 +25,10 @@ async def add_post(post_url: str, public_id: str, description: str, user: User, 
     return post
 
 
-async def delete_post(post_id: int, user: User, db: Session):
+async def delete_post(post_id: int, db: Session):
     post = (
         db.query(Post)
-        .filter(and_(Post.id == post_id, Post.user_id == user.id))
+        .filter(Post.id == post_id)
         .first()
     )
     if post:
@@ -38,10 +38,10 @@ async def delete_post(post_id: int, user: User, db: Session):
     return post
 
 
-async def edit_description(post_id: int, description: str, user: User, db: Session):
+async def edit_description(post_id: int, description: str, db: Session):
     post = (
         db.query(Post)
-        .filter(and_(Post.id == post_id, Post.user_id == user.id))
+        .filter(Post.id == post_id)
         .first()
     )
     if post:
@@ -56,9 +56,9 @@ async def get_posts(user: User, db: Session):
     return db.query(Post).filter(Post.user_id == user.id).all()
 
 
-async def get_post(post_id: int, user: User, db: Session):
+async def get_post(post_id: int, db: Session):
     return (
         db.query(Post)
-        .filter(and_(Post.id == post_id, Post.user_id == user.id))
+        .filter(Post.id == post_id)
         .first()
     )

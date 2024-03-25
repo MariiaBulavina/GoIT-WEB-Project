@@ -54,6 +54,9 @@ async def login(body: OAuth2PasswordRequestForm = Depends(), db: Session = Depen
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid email')
     
+    if not user.is_active:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Access denied: User is banned')
+    
     if not user.confirmed:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Email is not confirmed')
     
