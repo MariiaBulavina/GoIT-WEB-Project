@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi_limiter import FastAPILimiter
 import redis.asyncio as redis
 
-from src.routes import  auth, users
+from src.routes import  auth, users, posts, transformations
 from src.conf.config import settings
 
 
@@ -21,7 +21,8 @@ app.add_middleware(
 
 app.include_router(auth.router, prefix='/api')
 app.include_router(users.router, prefix='/api')
-
+app.include_router(posts.router, prefix='/api')
+app.include_router(transformations.router, prefix='/api')
 
 @app.on_event('startup')
 async def startup():

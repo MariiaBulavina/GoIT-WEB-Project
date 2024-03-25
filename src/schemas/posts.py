@@ -12,12 +12,12 @@ class PostModel(BaseModel):
 
 class PostResponse(BaseModel):
     id: int
-    Posts_url: str
+    post_url: str
     user_id: int
     created_at: datetime
     updated_at: Optional[datetime]
     description: str
-    tags: list[Tag]
+    # tags: list[Tag]
 
     class Config:
         from_attributes = True
