@@ -43,7 +43,8 @@ class Post(Base):
     __tablename__ = 'posts'
 
     id = Column(Integer, primary_key=True)
-    photo_url = Column(String())
+    post_url = Column(String())
+    public_id = Column(String())
     description = Column(Text)
     created_at = Column('created_at', DateTime, default=func.now())
     updated_at = Column('updated_at', DateTime, default=func.now())
