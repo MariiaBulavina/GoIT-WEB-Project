@@ -62,3 +62,12 @@ async def get_post(post_id: int, db: Session):
         .filter(Post.id == post_id)
         .first()
     )
+
+
+async def get_post_url(post_id: int, db: Session):
+
+    result = db.query(Post).filter(Post.id == post_id).first()
+    if result is None:
+        return None
+    
+    return result.post_url
