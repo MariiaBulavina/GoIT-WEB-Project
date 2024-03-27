@@ -1,35 +1,68 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from repository.comment_functions import create_comment, get_comment, update_comment, delete_comment
-from database import get_db
-from ..schemas.comments import CommentModel, CommentResponse
+from typing import List
 
-router = APIRouter()
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from src.database.models import UserRole
+from src.repository import comments as comments_repository
+from src.database.db import get_db
+from src.schemas.comments import CommentModel, CommentResponse
+from src.services.auth import auth_service
+from src.repository import posts as posts_repository
+
+
+router = APIRouter(tags=["comments"])
 
 @router.post("/{post_id}/comments", response_model=CommentResponse)
-def create_comment_for_post(post_id: int, comment_data: CommentModel, db: Session = Depends(get_db)):
-    comment = create_comment(db, post_id, comment_data)
+async def create_comment_for_post(post_id: int, comment_data: CommentModel, db: Session = Depends(get_db),  user=Depends(auth_service.get_current_user)):
+
+    post = await posts_repository.get_post(post_id, db)
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found") 
+    
+    comment = await comments_repository.create_comment(db, post_id, comment_data, user)
+
     if not comment:
-        raise HTTPException(status_code=400, detail="Failed to create comment")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to create comment")
     return comment
 
-@router.get("/{comment_id}", response_model=CommentResponse)
-def read_comment(comment_id: int, db: Session = Depends(get_db)):
-    comment = get_comment(db, comment_id)
+
+@router.get("/comments/{comment_id}", response_model=CommentResponse)
+async def read_comment(comment_id: int, db: Session = Depends(get_db), user=Depends(auth_service.get_current_user)):
+    comment = await comments_repository.get_comment(db, comment_id)
     if not comment:
-        raise HTTPException(status_code=404, detail="Comment not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
     return comment
 
-@router.put("/{comment_id}", response_model=CommentResponse)
-def update_existing_comment(comment_id: int, comment_data: CommentModel, db: Session = Depends(get_db)):
-    comment = update_comment(db, comment_id, comment_data)
+
+@router.get("/{post_id}/comments", response_model=List[CommentResponse])
+
+async def read_comment_for_post(post_id: int, db: Session = Depends(get_db), user=Depends(auth_service.get_current_user)):
+
+    
+    comments = await comments_repository.get_comments_for_post(post_id, db)
+
+    if not comments:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comments not found")
+    
+    return comments
+
+
+@router.put("/comments/{comment_id}", response_model=CommentResponse)
+async def update_existing_comment(comment_id: int, comment_data: CommentModel, db: Session = Depends(get_db), user=Depends(auth_service.get_current_user)):
+    comment = await comments_repository.update_comment(db, comment_id, comment_data, user)
     if not comment:
-        raise HTTPException(status_code=404, detail="Comment not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
     return comment
 
-@router.delete("/{comment_id}", response_model=CommentResponse)
-def delete_existing_comment(comment_id: int, db: Session = Depends(get_db)):
-    comment = delete_comment(db, comment_id)
+
+@router.delete("/comments/{comment_id}", response_model=CommentResponse)
+async def delete_existing_comment(comment_id: int, db: Session = Depends(get_db), user=Depends(auth_service.get_current_user)):
+
+    if user.user_role != UserRole.moderator and user.user_role != UserRole.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to delete this comment")
+    
+    comment = await comments_repository.delete_comment(db, comment_id)
     if not comment:
-        raise HTTPException(status_code=404, detail="Comment not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
     return comment
