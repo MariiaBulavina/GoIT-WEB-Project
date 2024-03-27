@@ -92,7 +92,7 @@ async def get_post(
 
 
 @router.get("/{post_id}/qrcode")
-async def get_qrcode(post_id: int, db=Depends(get_db)):
+async def get_qrcode(post_id: int, db=Depends(get_db), user=Depends(auth_service.get_current_user)):
     
     url = await posts_repository.get_post_url(post_id, db)
 

@@ -78,11 +78,7 @@ class Tag(Base):
     created_at = Column('created_at', DateTime, default=func.now())
     updated_at = Column('updated_at', DateTime, default=func.now())
 
-    user_id = Column(Integer, ForeignKey(User.id, ondelete='CASCADE'))
-
-    user = relationship('User', backref='tags')
-
-
+    
 class TransformPosts(Base):
     __tablename__ = 'transform_posts'
 

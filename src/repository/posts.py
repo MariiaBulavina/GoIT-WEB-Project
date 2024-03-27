@@ -1,10 +1,11 @@
 from datetime import datetime
 
+from fastapi import HTTPException, status
 import cloudinary.uploader
 from sqlalchemy import text, and_
 from sqlalchemy.orm import Session
 
-from src.database.models import Post, User
+from src.database.models import Post, User, Tag
 
 
 async def add_post(post_url: str, public_id: str, description: str, user: User, db: Session):
@@ -46,7 +47,7 @@ async def edit_description(post_id: int, description: str, db: Session):
     )
     if post:
         post.description = description
-        post.tags = []
+        post.tags = post.tags
         post.updated_at = datetime.now()
         db.commit()
     return post
@@ -71,3 +72,18 @@ async def get_post_url(post_id: int, db: Session):
         return None
     
     return result.post_url
+
+
+async def add_tag_to_post(post: Post, tag: Tag, db: Session):
+
+    if tag in post.tags:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'The tag {tag.tag} has already been added to this post')
+    
+    if len(post.tags) == 5:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You cannot add more than 5 tags to one post')
+
+    post.tags.append(tag)
+    post.updated_at = datetime.now()
+    db.commit()
+    db.refresh(post)
+    return post 
