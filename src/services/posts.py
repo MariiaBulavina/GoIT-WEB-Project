@@ -1,12 +1,12 @@
 from uuid import uuid4
 import cloudinary
 import cloudinary.uploader
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from src.conf.config import settings
 from src.database.models import User
-from src.repository.posts import get_post
+from src.repository.posts import get_post, get_post_url, add_post
 
 
 class PostService:
@@ -47,6 +47,11 @@ class PostService:
             url_to_return = transformed_url["eager"][0]["secure_url"]
         except KeyError:
             raise HTTPException(status_code=400, detail="Invalid width or height")
+        
+        post_in_db = await get_post_url(transformed_url, user, db)
+        if post_in_db:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Resource already exists")
+        new_post = await add_post(transformed_url, post.public_id, post.description, user, db)
         return url_to_return
 
 
@@ -65,7 +70,13 @@ class PostService:
             url_to_return = transformed_url["eager"][0]["secure_url"]
         except KeyError:
             raise HTTPException(status_code=400, detail="Invalid filter")
+            
+        post_in_db = await get_post_url(transformed_url, user, db)
+        if post_in_db:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Resource already exists")
+        new_post = await add_post(transformed_url, post.public_id, post.description, user, db)
         return url_to_return
 
+post_service = PostService()
 
 post_service = PostService()
