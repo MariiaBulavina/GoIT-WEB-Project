@@ -5,7 +5,7 @@ import cloudinary.uploader
 from sqlalchemy import text, and_
 from sqlalchemy.orm import Session
 
-from src.database.models import Post, User, Tag
+from src.database.models import Post, User, Tag, TransformedPost
 
 
 async def add_post(post_url: str, public_id: str, description: str, user: User, db: Session):
@@ -87,3 +87,44 @@ async def add_tag_to_post(post: Post, tag: Tag, db: Session):
     db.commit()
     db.refresh(post)
     return post 
+
+
+async def get_post_by_url(post_url: str, db: Session):
+
+    result = db.query(Post).filter(Post.post_url == post_url).first()
+    if result is None:
+        return None
+    
+    return result
+
+
+async def get_transformed_post_by_url(transformed_post_url: str, db: Session):
+
+    result = db.query(TransformedPost).filter(TransformedPost.transformed_post_url == transformed_post_url).first()
+    if result is None:
+        return None
+    
+    return result
+
+
+async def add_transformed_post(transformed_post_url: str, post_id: int, db: Session):
+    
+    transformed_post = TransformedPost(
+        transformed_post_url=transformed_post_url,
+        post_id=post_id,
+        created_at=datetime.now(),
+    )
+    db.add(transformed_post)
+    db.commit()
+    db.refresh(transformed_post)
+    
+    return transformed_post
+
+
+async def get_transformed_post_url(transformed_post_id: int, db: Session):
+
+    result = db.query(TransformedPost).filter(TransformedPost.id == transformed_post_id).first()
+    if result is None:
+        return None
+    
+    return result.transformed_post_url

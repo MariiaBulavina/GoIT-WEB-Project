@@ -92,7 +92,7 @@ async def get_post(
 
 
 @router.get("/{post_id}/qrcode")
-async def get_qrcode(post_id: int, db=Depends(get_db), user=Depends(auth_service.get_current_user)):
+async def get_post_qrcode(post_id: int, db=Depends(get_db), user=Depends(auth_service.get_current_user)):
     
     url = await posts_repository.get_post_url(post_id, db)
 
@@ -104,4 +104,12 @@ async def get_qrcode(post_id: int, db=Depends(get_db), user=Depends(auth_service
     return StreamingResponse(qr_code_buffer, media_type="image/png")
 
 
+@router.get("/transformed/{transformed_post_id}/qrcode")
+async def get_transformed_post_qrcode(transformed_post_id: int, db=Depends(get_db), user=Depends(auth_service.get_current_user)):
+    url = await posts_repository.get_transformed_post_url(transformed_post_id, db)
+    if url is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+    
+    qr_code_buffer = generate_qrcode(url)
 
+    return StreamingResponse(qr_code_buffer, media_type="image/png")

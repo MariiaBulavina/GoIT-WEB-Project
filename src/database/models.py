@@ -79,15 +79,15 @@ class Tag(Base):
     updated_at = Column('updated_at', DateTime, default=func.now())
 
     
-class TransformPosts(Base):
-    __tablename__ = 'transform_posts'
+class TransformedPost(Base):
+    __tablename__ = 'transformed_posts'
 
     id = Column(Integer, primary_key=True)
-    photo_url = Column(String, nullable=False)
-    photo_id = Column(Integer, ForeignKey(Post.id, ondelete='CASCADE'))
+    transformed_post_url = Column(String, nullable=False)
+    post_id = Column(Integer, ForeignKey(Post.id, ondelete='CASCADE'))
     created_at = Column('created_at', DateTime, default=func.now())
 
-    post = relationship('Post', backref='transform_posts')
+    post = relationship('Post', backref='transformed_posts')
 
 
 class RatePost(Base):

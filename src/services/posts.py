@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from src.conf.config import settings
 from src.database.models import User
-from src.repository.posts import get_post, get_post_url, add_post
+from src.repository.posts import get_post, get_post_url, add_post, get_post_by_url, add_transformed_post, get_transformed_post_by_url
 
 
 class PostService:
@@ -28,7 +28,7 @@ class PostService:
 
 
     async def resize_post(self, post_id: str, width: int, height: int, user: User, db: Session):
-        post = await get_post(post_id, user=user, db=db)
+        post = await get_post(post_id, db=db)
         transformed_url = cloudinary.uploader.explicit(
             post.public_id,
             type="upload",
@@ -48,19 +48,25 @@ class PostService:
         except KeyError:
             raise HTTPException(status_code=400, detail="Invalid width or height")
         
-        post_in_db = await get_post_url(transformed_url, user, db)
+        post_in_db = await get_transformed_post_by_url(url_to_return, db)
+
         if post_in_db:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Resource already exists")
-        new_post = await add_post(transformed_url, post.public_id, post.description, user, db)
+        
+        new_post = await add_transformed_post(url_to_return, post.id, db)
         return url_to_return
 
 
     async def add_filter(self, post_id: str, filter: str, user: User, db: Session):
+
         filters = ["al_dente", "athena", "audrey", "aurora", "daguerre", "eucalyptus", "fes", "frost",
             "hairspray", "hokusai", "incognito", "linen", "peacock", "primavera", "quartz",
             "red_rock", "refresh", "sizzle", "sonnet", "ukulele", "zorro"]
+        
         effect = f"art:{filter}" if filter in filters else filter
-        post = await get_post(post_id, user=user, db=db)
+
+        post = await get_post(post_id, db=db)
+
         transformed_url = cloudinary.uploader.explicit(
             post.public_id,
             type="upload",
@@ -70,13 +76,16 @@ class PostService:
             url_to_return = transformed_url["eager"][0]["secure_url"]
         except KeyError:
             raise HTTPException(status_code=400, detail="Invalid filter")
-            
-        post_in_db = await get_post_url(transformed_url, user, db)
+        
+        post_in_db = await get_transformed_post_by_url(url_to_return, db)
+        
         if post_in_db:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Resource already exists")
-        new_post = await add_post(transformed_url, post.public_id, post.description, user, db)
-        return url_to_return
+        
 
-post_service = PostService()
+        new_post = await add_transformed_post(url_to_return, post.id, db)
+
+        
+        return url_to_return
 
 post_service = PostService()
