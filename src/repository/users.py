@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import select, func
 
-from src.database.models import User, UserRole, Post, Comment
+from src.database.models import User, UserRole, Post, Comment, BlacklistToken
 from src.schemas.users import UserModel, UserProfile
 
 
@@ -163,3 +163,33 @@ async def get_user_profile(user: User, db: Session) -> UserProfile | None:
         return user_profile
     
     return None
+
+
+async def add_to_blacklist(token: str, db: Session) -> None:
+    """
+    Add a token to the blacklist.
+
+    :param token: str: The JWT that is being blacklisted.
+    :param db: Session: SQLAlchemy session object for accessing the database
+    return: None
+    """
+    blacklist_token = BlacklistToken(token=token, added_on=datetime.now())
+    db.add(blacklist_token)
+    db.commit()
+    db.refresh(blacklist_token)
+    return None
+
+
+async def is_blacklisted_token(token: str, db: Session) -> bool:
+    """
+    Check if a token is blacklisted.
+
+    :param token: str: The JWT that is being blacklisted.
+    :param db: Session: SQLAlchemy session object for accessing the database
+    return: bool
+    """
+    blacklist_token = db.query(BlacklistToken).filter(BlacklistToken.token == token).first()
+    if blacklist_token:
+        return True
+    return False
+    
