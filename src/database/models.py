@@ -102,3 +102,11 @@ class RatePost(Base):
 
     post = relationship('Post', backref='rates_posts')
     user = relationship('User', backref='rates_posts')
+
+
+class BlacklistToken(Base):
+    __tablename__ = 'blacklisted_tokens'
+    id = Column(Integer, primary_key=True)
+    token = Column(String(255), unique=True, nullable=False)
+    added_on = Column(DateTime, default=func.now())
+    
