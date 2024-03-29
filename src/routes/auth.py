@@ -138,3 +138,22 @@ async def request_email(body: RequestEmail, background_tasks: BackgroundTasks, r
         background_tasks.add_task(send_email, user.email, user.username, str(request.base_url))
 
     return {'message': 'Check your email for confirmation.'}
+
+
+@router.post("/logout")
+async def logout(credentials: HTTPAuthorizationCredentials = Security(security),
+                 db: Session = Depends(get_db),
+                 current_user: UserModel = Depends(auth_service.get_current_user)):
+    """
+    Logout a user.
+
+    :param credentials: HTTPAuthorizationCredentials: Get the token from the request header
+    :param db: Session: SQLAlchemy session object for accessing the database
+    :param current_user: UserModel: the current user
+    return: dict: JSON message
+    """
+    token = credentials.credentials
+
+    await repository_users.add_to_blacklist(token, db)
+    return {"message": "USER_IS_LOGOUT"}
+                     
