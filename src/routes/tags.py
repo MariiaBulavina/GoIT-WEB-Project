@@ -13,10 +13,9 @@ from src.services.auth import auth_service
 router = APIRouter(tags=["tags"])
 
 @router.post("/{post_id}/tags", response_model=TagResponse)
-async def create_new_tag(post_id: int, tag_data: TagModel, db: Session = Depends(get_db), user=Depends(auth_service.get_current_user)):
+async def create_new_tag(post_id: int, tag: TagModel, db: Session = Depends(get_db), user=Depends(auth_service.get_current_user)):
 
-    tag = await tags_repository.create_tag(db, tag_data)
-    
+    tag = await tags_repository.create_tag(db, tag)
     post = await posts_repository.get_post(post_id=post_id, db=db)
     await posts_repository.add_tag_to_post(post, tag, db)
 
@@ -25,6 +24,7 @@ async def create_new_tag(post_id: int, tag_data: TagModel, db: Session = Depends
 
 @router.get("/tags/{tag_name}", response_model=TagResponse)
 async def read_tag(tag_name: str, db: Session = Depends(get_db), user=Depends(auth_service.get_current_user)):
+
     tag = await tags_repository.get_tag_by_name(db, tag_name)
     if not tag:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tag not found")
@@ -35,8 +35,10 @@ async def read_tag(tag_name: str, db: Session = Depends(get_db), user=Depends(au
 async def read_tags(post_id: int, db: Session = Depends(get_db), user=Depends(auth_service.get_current_user)):
 
     post = await posts_repository.get_post(post_id, db)
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+    
     tags = await tags_repository.get_post_tags(post, db)
-
     return tags
 
 

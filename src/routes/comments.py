@@ -30,6 +30,7 @@ async def create_comment_for_post(post_id: int, comment_data: CommentModel, db: 
 @router.get("/comments/{comment_id}", response_model=CommentResponse)
 async def read_comment(comment_id: int, db: Session = Depends(get_db), user=Depends(auth_service.get_current_user)):
     comment = await comments_repository.get_comment(db, comment_id)
+
     if not comment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
     return comment
@@ -38,19 +39,17 @@ async def read_comment(comment_id: int, db: Session = Depends(get_db), user=Depe
 @router.get("/{post_id}/comments", response_model=List[CommentResponse])
 
 async def read_comment_for_post(post_id: int, db: Session = Depends(get_db), user=Depends(auth_service.get_current_user)):
-
-    
     comments = await comments_repository.get_comments_for_post(post_id, db)
 
     if not comments:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comments not found")
-    
     return comments
 
 
 @router.put("/comments/{comment_id}", response_model=CommentResponse)
 async def update_existing_comment(comment_id: int, comment_data: CommentModel, db: Session = Depends(get_db), user=Depends(auth_service.get_current_user)):
     comment = await comments_repository.update_comment(db, comment_id, comment_data, user)
+    
     if not comment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
     return comment

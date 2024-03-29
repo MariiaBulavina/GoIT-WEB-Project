@@ -1,8 +1,9 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel, Field
-from src.schemas.tags import TagModel
+from src.schemas.tags import Tag
+
 
 class PostModel(BaseModel):
     description: str = Field('description', min_length=10, max_length=255)
@@ -17,7 +18,7 @@ class PostResponse(BaseModel):
     created_at: datetime
     updated_at: Optional[datetime]
     description: str
-    # tags: list[TagModel]
+    tags: List[Tag] = []
 
     class Config:
         from_attributes = True

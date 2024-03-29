@@ -1,12 +1,11 @@
-from cloudinary import CloudinaryImage
 from fastapi import APIRouter, Request, Depends
 
 from src.database.db import get_db
 from src.services.posts import post_service
 from src.services.auth import auth_service
 
-router = APIRouter(prefix="/transformations", tags=["transformations"])
 
+router = APIRouter(prefix="/transformations", tags=["transformations"])
 
 @router.post("/resize/{post_id}")
 async def resize(

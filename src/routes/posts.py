@@ -9,8 +9,8 @@ from src.services.posts import post_service
 from src.database.models import UserRole
 from src.services.qrcode_creation import generate_qrcode
 
-router = APIRouter(prefix="/posts", tags=["posts"])
 
+router = APIRouter(prefix="/posts", tags=["posts"])
 
 @router.post("/", response_model=PostResponse)
 async def add_post(
@@ -22,7 +22,6 @@ async def add_post(
 ):
     post_info = await post_service.upload_post(file=file)
 
-    
     return await posts_repository.add_post(
         post_url=post_info["url"],
         public_id=post_info["public_id"],
@@ -40,6 +39,7 @@ async def delete_post(
     user=Depends(auth_service.get_current_user),
 ):
     post = await posts_repository.delete_post(post_id=post_id, db=db)
+
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
     
@@ -75,7 +75,16 @@ async def get_posts(
     db=Depends(get_db),
     user=Depends(auth_service.get_current_user),
 ):
-    return await posts_repository.get_posts(user=user, db=db)
+    return await posts_repository.get_posts(db=db)
+
+
+@router.get("/my_posts", response_model=list[PostResponse])
+async def get_my_posts(
+    request: Request,
+    db=Depends(get_db),
+    user=Depends(auth_service.get_current_user),
+):
+    return await posts_repository.get_my_posts(user=user, db=db)
 
 
 @router.get("/{post_id}", response_model=PostResponse)
@@ -107,6 +116,7 @@ async def get_post_qrcode(post_id: int, db=Depends(get_db), user=Depends(auth_se
 @router.get("/transformed/{transformed_post_id}/qrcode")
 async def get_transformed_post_qrcode(transformed_post_id: int, db=Depends(get_db), user=Depends(auth_service.get_current_user)):
     url = await posts_repository.get_transformed_post_url(transformed_post_id, db)
+
     if url is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
     

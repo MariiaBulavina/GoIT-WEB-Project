@@ -1,11 +1,18 @@
 from datetime import datetime
 
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Optional
 
 
 class TagModel(BaseModel):
-    tag_name: str
+    tag: str
+
+
+class Tag(TagModel):
+    id: int
+
+    class Config:
+        from_attributes = True
 
 
 class TagResponse(BaseModel):
@@ -16,4 +23,4 @@ class TagResponse(BaseModel):
     updated_at: Optional[datetime]
 
     class Config:
-        orm_mode = True
+        from_attributes = True

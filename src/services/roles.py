@@ -13,5 +13,5 @@ class RoleAccess:
         if user.user_role not in self.allowed_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="FORBIDDEN"
+                detail="You do not have permission"
             )

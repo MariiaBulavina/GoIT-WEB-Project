@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from src.conf.config import settings
 from src.database.models import User
-from src.repository.posts import get_post, get_post_url, add_post, get_post_by_url, add_transformed_post, get_transformed_post_by_url
+from src.repository.posts import get_post, add_transformed_post, get_transformed_post_by_url
 
 
 class PostService:
@@ -29,6 +29,10 @@ class PostService:
 
     async def resize_post(self, post_id: str, width: int, height: int, user: User, db: Session):
         post = await get_post(post_id, db=db)
+
+        if not post:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Post not found')
+        
         transformed_url = cloudinary.uploader.explicit(
             post.public_id,
             type="upload",
@@ -44,17 +48,17 @@ class PostService:
             ],
         )
         try:
-            url_to_return = transformed_url["eager"][0]["secure_url"]
+            result_url = transformed_url["eager"][0]["secure_url"]
         except KeyError:
             raise HTTPException(status_code=400, detail="Invalid width or height")
         
-        post_in_db = await get_transformed_post_by_url(url_to_return, db)
+        post_in_db = await get_transformed_post_by_url(result_url, db)
 
         if post_in_db:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Resource already exists")
         
-        new_post = await add_transformed_post(url_to_return, post.id, db)
-        return url_to_return
+        new_post = await add_transformed_post(result_url, post.id, db)
+        return new_post
 
 
     async def add_filter(self, post_id: str, filter: str, user: User, db: Session):
@@ -67,25 +71,27 @@ class PostService:
 
         post = await get_post(post_id, db=db)
 
+        if not post:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Post not found')
+
         transformed_url = cloudinary.uploader.explicit(
             post.public_id,
             type="upload",
             eager=[{"effect": effect}, {"fetch_format": "auto"}, {"radius": "max"}],
         )
         try:
-            url_to_return = transformed_url["eager"][0]["secure_url"]
+            result_url = transformed_url["eager"][0]["secure_url"]
         except KeyError:
             raise HTTPException(status_code=400, detail="Invalid filter")
         
-        post_in_db = await get_transformed_post_by_url(url_to_return, db)
+        post_in_db = await get_transformed_post_by_url(result_url, db)
         
         if post_in_db:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Resource already exists")
         
+        new_post = await add_transformed_post(result_url, post.id, db)
 
-        new_post = await add_transformed_post(url_to_return, post.id, db)
+        return new_post
 
-        
-        return url_to_return
 
 post_service = PostService()

@@ -1,5 +1,4 @@
 import pickle
-from typing import List
 
 import cloudinary
 import cloudinary.uploader

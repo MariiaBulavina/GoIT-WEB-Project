@@ -138,7 +138,7 @@ async def unban_user(email: str, db: Session) -> User | None:
     return None
 
 
-async def get_user_profile(user: User, db: Session):
+async def get_user_profile(user: User, db: Session) -> UserProfile | None:
 
     if user:
         find_posts = select(func.count()).where(Post.user_id == user.id) 
