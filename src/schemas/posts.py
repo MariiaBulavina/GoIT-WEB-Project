@@ -23,3 +23,14 @@ class PostResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
+class PostProfile(BaseModel):
+    url: str
+    description: str | None
+    average_rating: float | None
+    tags: list[str] | None
+    comments: list[CommentByUser] | None
+
+
+class PostsByFilter(BaseModel):
+    images: list[PostProfile]
