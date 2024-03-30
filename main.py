@@ -14,7 +14,7 @@ app.include_router(posts.router, prefix='/api')
 app.include_router(transformations.router, prefix='/api')
 app.include_router(tags.router, prefix='/api')
 app.include_router(comments.router, prefix='/api')
-
+app.include_router(ratings.router, prefix='/api')
 
 @app.on_event('startup')
 async def startup():
