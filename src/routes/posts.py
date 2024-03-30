@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Request, Depends, HTTPException, UploadFile, File, status
+from fastapi import APIRouter, Request, Depends, HTTPException, UploadFile, File, status, Query
 from fastapi.responses import StreamingResponse
+from sqlalchemy.exc import SQLAlchemyError
 
 from src.database.db import get_db
 from src.repository import posts as posts_repository
-from src.schemas.posts import PostResponse
+from src.schemas.posts import PostResponse, PostsByFilter
 from src.services.auth import auth_service
 from src.services.posts import post_service
-from src.database.models import UserRole
+from src.database.models import UserRole, User
 from src.services.qrcode_creation import generate_qrcode
 
 
@@ -119,7 +120,37 @@ async def get_transformed_post_qrcode(transformed_post_id: int, db=Depends(get_d
 
     if url is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
-    
+
+
+@router.get("/search", response_model=PostsByFilter) #, dependencies=[Depends(all_roles)])
+async def search_posts(
+    current_user: User = Depends(auth_service.get_current_user),
+    keyword: str = Query(default=None),
+    tag: str = Query(default=None),
+    min_rating: int = Query(default=None),
+    db = Depends(get_db)
+):
+    """
+    Endpoint to search for posts based on specified filters.
+
+    :param db: Database session.
+    :type db: Session
+    :param current_user: Currently authenticated user.
+    :type current_user: User
+    :param keyword: Keyword to search for in image descriptions.
+    :type keyword: str
+    :param tag: Tag to filter posts by.
+    :type tag: str
+    :param min_rating: Minimum rating for posts.
+    :type min_rating: int
+    :return: Images matching the specified filters.
+    :rtype: ImagesByFilter
+    """
+    try:
+        all_posts = await posts_repository.get_all_posts(db, current_user, keyword, tag, min_rating)
+        return all_posts
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))    
     qr_code_buffer = generate_qrcode(url)
 
     return StreamingResponse(qr_code_buffer, media_type="image/png")
