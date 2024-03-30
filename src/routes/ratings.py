@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 from src.database.db import get_db
 from src.database.models import User, UserRole
 from src.repository import ratings as repository_ratings
-from src.schemas.ratings import RatingModel, ImageModel, RatingResponse
+from src.schemas.ratings import RatingModel, RatingResponse
+from src.schemas.posts import PostModel
 from src.services.auth import auth_service
 from src.services.roles import UserRole
 
