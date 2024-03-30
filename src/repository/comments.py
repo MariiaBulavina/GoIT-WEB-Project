@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from datetime import datetime
-from .models import Comment
+from models import Comment
 from ..schemas.comments import CommentModel
 
 def create_comment(db: Session, post_id: int, user_id: int, comment_data: CommentModel):
