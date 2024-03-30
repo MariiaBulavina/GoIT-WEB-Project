@@ -1,11 +1,15 @@
 from datetime import datetime
-from typing import List
+from typing import Any
 
 from fastapi import HTTPException, status
 import cloudinary.uploader
-from sqlalchemy import Column
+from sqlalchemy import Column, func, desc
 from sqlalchemy.orm import Session
 
+from src.database.models import Post, User, Tag, TransformedPost, RatePost
+from src.schemas.posts import PostProfile, PostsByFilter
+from src.schemas.comments import CommentByUser
+from src.repository import ratings as repository_ratings
 from src.database.models import Post, User, Tag, TransformedPost
 
 
@@ -219,3 +223,61 @@ async def get_transformed_post_url(transformed_post_id: int, db: Session) -> Col
         return None
     
     return result.transformed_post_url
+
+
+async def get_all_posts(
+    current_user: User,
+    db: Session,
+    keyword: str = None,
+    tag: str = None,
+    min_rating: float = None,
+):
+    """
+    Search all posts in the database based on the provided filters
+    such as keyword, tag, and minimum rating.
+
+    :param current_user: The user making the request.
+    :type current_user: User
+    :param db: Database session.
+    :type db: Session
+    :param keyword: Keyword to filter posts by description.
+    :type keyword: str, optional
+    :param tag: Tag to filter posts.
+    :type tag: str, optional
+    :param min_rating: Minimum rating to filter posts.
+    :type min_rating: float, optional
+    :return: Response containing the list of filtered posts.
+    :rtype: PostsByFilter
+    """
+    query = db.query(Post)
+    if keyword:
+        query = query.filter(Post.description.ilike(f"%{keyword}%"))
+    if tag:
+        query = query.filter(Post.tags.any(Tag.tag_name == tag))
+    if min_rating is not None:
+        query = query.join(RatePost, Post.id == RatePost.post_id)
+        query = query.group_by(Post.id).having(func.avg(RatePost.rate) >= min_rating)
+    query = query.order_by(desc(Post.created_at))
+    result = query.all()
+    posts = []
+    for post in result:
+        tags = []
+        comments = []
+        for comment in post.comments:
+            new_comment = CommentByUser(user_id=comment.user_id, comment=comment.comment)
+            comments.append(new_comment)
+        for tag in post.tags:
+            new_tag = tag.tag_name
+            tags.append(new_tag)
+        rating = await repository_ratings.calculate_rating(post.id, db, current_user)
+        new_rating = rating["average_rating"]
+        new_post = PostProfile(
+            url=post.url,
+            description=post.description,
+            average_rating=new_rating,
+            tags=tags,
+            comments=comments,
+        )
+        posts.append(new_post)
+    all_posts = PostsByFilter(posts=posts)
+    return all_posts
