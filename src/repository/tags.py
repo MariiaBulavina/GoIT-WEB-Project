@@ -8,7 +8,13 @@ from src.schemas.tags import TagModel
 
 
 async def create_tag(db: Session, tag_data: TagModel) -> Tag:
+    """
+    Function to create tag.
 
+    :param db: Session: Connection session to database
+    :param tag_data: TagModel: Tag
+    :return: Tag
+    """
     tag = await get_tag_by_name(db, tag_data.tag)
 
     if tag:
@@ -25,11 +31,24 @@ async def create_tag(db: Session, tag_data: TagModel) -> Tag:
 
 
 async def get_tag_by_name(db: Session, tag: str) -> Tag | None:
+    """
+    Function to get tag by name.
+
+    :param db: Session: Connection session to database
+    :param tag_name: str: Name of tag
+    :return: Tag or None
+    """
     return db.query(Tag).filter(Tag.tag == tag).first()
 
 
 async def get_post_tags(post: Post, db: Session) -> list:
+    """
+    Function to get post tags.
 
+    :param post: Post: Post tags of which we receive
+    :param db: Connection session to database
+    :return: List of tags
+    """
     result = []
 
     try:
@@ -43,7 +62,14 @@ async def get_post_tags(post: Post, db: Session) -> list:
 
 
 async def update_tag(db: Session, tag_id: int, tag_data: TagModel) -> Tag:
+    """
+    Function to update tag.
 
+    :param db: Session: Connection session to database
+    :param tag_id: int: id of the tag
+    :param tag_data: TagModel: description of the tag
+    :return: Tag
+    """
     tag = db.query(Tag).filter(Tag.id == tag_id).first()
 
     tag_find = db.query(Tag).filter(Tag.tag == tag_data.tag).first()
@@ -65,6 +91,13 @@ async def update_tag(db: Session, tag_id: int, tag_data: TagModel) -> Tag:
 
 
 async def delete_tag(db: Session, tag_id: int) -> Tag:
+    """
+    Function to delete tag.
+
+    :param db: Session: Connection session to database
+    :param tag_id: int: id of tag
+    :return: Tag
+    """
     tag = db.query(Tag).filter(Tag.id == tag_id).first()
     if not tag:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tag not found")

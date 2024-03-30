@@ -95,6 +95,13 @@ async def update_avatar_url(email: str, url: str | None, db: Session) -> User:
 
 
 async def get_user_by_username(username: str, db: Session) -> User | None:
+    """
+    Function to get user by username.
+
+    :param username: str: Name of user
+    :param db: Session: Connection session to database
+    :return: User or None
+    """
     try:
         user = db.query(User).filter(User.username == username).first()
         return user
@@ -103,6 +110,13 @@ async def get_user_by_username(username: str, db: Session) -> User | None:
     
 
 async def get_user_by_id(user_id: int, db: Session) -> User | None:
+    """
+    Function to get user by id.
+
+    :param user_id: int: User id
+    :param db: Session: Connection session to database
+    :return: User or None
+    """
     try:
         user = db.query(User).filter(User.id == user_id).first()
         return user
@@ -111,7 +125,14 @@ async def get_user_by_id(user_id: int, db: Session) -> User | None:
 
 
 async def change_role(email: str, role: UserRole, db: Session) -> User | None:
+    """
+    Function to change role.
 
+    :param email: str: Email
+    :param role: UserRole: Role of user
+    :param db: Session: Connection session to database
+    :return: User or None
+    """
     user = await get_user_by_email(email, db)
     if user:
         user.user_role = role
@@ -121,7 +142,13 @@ async def change_role(email: str, role: UserRole, db: Session) -> User | None:
 
 
 async def ban_user(email: str, db: Session) -> User | None:
+    """
+    Function to ban user.
 
+    :param email: str: Email
+    :param db: Session: Connection session to database
+    :return: User or None
+    """
     user = await get_user_by_email(email, db)
     if user:
         user.is_active = False
@@ -131,7 +158,13 @@ async def ban_user(email: str, db: Session) -> User | None:
         
 
 async def unban_user(email: str, db: Session) -> User | None:
+    """
+    Function to unban user.
 
+    :param email: str: Email
+    :param db: Session: Connection session to database
+    :return: User or None
+    """
     user = await get_user_by_email(email, db)
     if user:
         user.is_active = True
@@ -141,7 +174,13 @@ async def unban_user(email: str, db: Session) -> User | None:
 
 
 async def get_user_profile(user: User, db: Session) -> UserProfile | None:
+    """
+    Function to get user profile.
 
+    :param user: User: User
+    :param db: Session: Connection session to database
+    :return: User profile or None
+    """
     if user:
         find_posts = select(func.count()).where(Post.user_id == user.id) 
         posts_number = db.execute(find_posts).scalar()

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Any
+from typing import List
 
 from fastapi import HTTPException, status
 import cloudinary.uploader
@@ -10,7 +10,16 @@ from src.database.models import Post, User, Tag, TransformedPost
 
 
 async def add_post(post_url: str, public_id: str, description: str, user: User, db: Session) -> Post:
-    
+    """
+    Function to add post.
+
+    :param post_url: str: Url of the post
+    :param public_id: str: Public id of the post
+    :param description: str: Description of the post
+    :param user: User: Author of the post
+    :param db: Session: Connection session to database
+    :return: Post
+    """
     post = Post(
         post_url=post_url,
         public_id=public_id,
@@ -28,6 +37,13 @@ async def add_post(post_url: str, public_id: str, description: str, user: User, 
 
 
 async def delete_post(post_id: int, db: Session) -> Post | None:
+    """
+    Function to delete post.
+
+    :param post_id: int: id of the post
+    :param db: Session: Connection session to database
+    :return: Post or None
+    """
     post = (
         db.query(Post)
         .filter(Post.id == post_id)
@@ -42,6 +58,14 @@ async def delete_post(post_id: int, db: Session) -> Post | None:
 
 
 async def edit_description(post_id: int, description: str, db: Session) -> Post | None:
+    """
+    Function to edit post description.
+
+    :param post_id: int: id of the post
+    :param description: str: Description of the post
+    :param db: Session: Connection session to database
+    :return: Post or None
+    """
     post = (
         db.query(Post)
         .filter(Post.id == post_id)
@@ -56,17 +80,37 @@ async def edit_description(post_id: int, description: str, db: Session) -> Post 
 
 
 async def get_posts(db: Session) -> List[Post]:
+    """
+    Function to get posts.
+
+    :param db: Session: Connection session to database
+    :return: List of posts
+    """
     result =  db.query(Post).all()
     return result
 
 
 async def get_my_posts(user: User, db: Session) -> List[Post]:
+    """
+    Function to get current user's posts.
+
+    :param user: User: Author of the post
+    :param db: Session: Connection session to database
+    :return: List of posts
+    """
     result =  db.query(Post).filter(Post.user_id == user.id).all()
     return result
 
 
 
 async def get_post(post_id: int, db: Session) -> Post | None:
+    """
+    Function to get post.
+
+    :param post_id: int: id of the post
+    :param db: Session: Connection session to database
+    :return: Post or None
+    """
     return (
         db.query(Post)
         .filter(Post.id == post_id)
@@ -75,7 +119,13 @@ async def get_post(post_id: int, db: Session) -> Post | None:
 
 
 async def get_post_url(post_id: int, db: Session) -> Column[str] | None:
+    """
+    Function to get post url.
 
+    :param post_id: int: id of the post
+    :param db: Session: Connection session to database
+    :return: Url of the post or None
+    """
     result = db.query(Post).filter(Post.id == post_id).first()
     if result is None:
         return None
@@ -84,7 +134,14 @@ async def get_post_url(post_id: int, db: Session) -> Column[str] | None:
 
 
 async def add_tag_to_post(post: Post, tag: Tag, db: Session) -> Post:
+    """
+    Function to add tag to post.
 
+    :param post: Post: The post to which the tag is added
+    :param tag: Tag: Tag that is added to the post
+    :param db: Session: Connection session to database
+    :return: Post
+    """
     if tag in post.tags:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'The tag {tag.tag} has already been added to this post')
     
@@ -99,7 +156,13 @@ async def add_tag_to_post(post: Post, tag: Tag, db: Session) -> Post:
 
 
 async def get_post_by_url(post_url: str, db: Session) -> Post | None:
+    """
+    Function to get post by url.
 
+    :param post_url: str: Url of the post
+    :param db: Session: Connection session to database
+    :return: Post or None
+    """
     result = db.query(Post).filter(Post.post_url == post_url).first()
     if result is None:
         return None
@@ -108,7 +171,13 @@ async def get_post_by_url(post_url: str, db: Session) -> Post | None:
 
 
 async def get_transformed_post_by_url(transformed_post_url: str, db: Session) -> TransformedPost | None:
+    """
+    Function to get transformed post by url.
 
+    :param transformed_post_url: str: Url of the transformed post
+    :param db: Session: Connection session to database
+    :return: Transformed post or None
+    """
     result = db.query(TransformedPost).filter(TransformedPost.transformed_post_url == transformed_post_url).first()
     if result is None:
         return None
@@ -117,7 +186,14 @@ async def get_transformed_post_by_url(transformed_post_url: str, db: Session) ->
 
 
 async def add_transformed_post(transformed_post_url: str, post_id: int, db: Session) -> TransformedPost:
-    
+    """
+    Function to add transformed post.
+
+    :param transformed_post_url: str: Url of the transformed post
+    :param post_id: int: id of the post we are transforming
+    :param db: Session: Connection session to database
+    :return: Transformed post
+    """
     transformed_post = TransformedPost(
         transformed_post_url=transformed_post_url,
         post_id=post_id,
@@ -130,8 +206,14 @@ async def add_transformed_post(transformed_post_url: str, post_id: int, db: Sess
     return transformed_post
 
 
-async def get_transformed_post_url(transformed_post_id: int, db: Session) -> Any | None:
+async def get_transformed_post_url(transformed_post_id: int, db: Session) -> Column[str] | None:
+    """
+    Function to get transformed post url.
 
+    :param transformed_post_id: int: id of the transformed post
+    :param db: Session: Connection session to database
+    :return: Url of the transformed post or None
+    """
     result = db.query(TransformedPost).filter(TransformedPost.id == transformed_post_id).first()
     if result is None:
         return None
