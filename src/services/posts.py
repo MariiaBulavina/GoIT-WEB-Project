@@ -55,7 +55,7 @@ class PostService:
         post_in_db = await get_transformed_post_by_url(result_url, db)
 
         if post_in_db:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Resource already exists")
+            return post_in_db
         
         new_post = await add_transformed_post(result_url, post.id, db)
         return new_post
@@ -87,7 +87,7 @@ class PostService:
         post_in_db = await get_transformed_post_by_url(result_url, db)
         
         if post_in_db:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Resource already exists")
+            return post_in_db
         
         new_post = await add_transformed_post(result_url, post.id, db)
 

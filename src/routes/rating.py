@@ -36,6 +36,8 @@ async def get_post_rating(
     ):
     
     post = await get_post(post_id, db)
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Post not found')
     return post
 
 
@@ -64,4 +66,5 @@ async def get_user_ratings(
     if user_id != current_user.id and current_user.user_role != UserRole.admin and current_user.user_role != UserRole.moderator:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to view user ratings")
 
-    return await repository_rating.get_user_ratings(user_id, db)
+    result = await repository_rating.get_user_ratings(user_id, db)
+    return result

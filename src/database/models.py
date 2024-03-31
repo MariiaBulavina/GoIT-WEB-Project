@@ -54,6 +54,7 @@ class Post(Base):
 
     tags = relationship('Tag', secondary=post_tag, backref='posts', passive_deletes=True)
     user = relationship('User', backref='posts')
+    ratings = relationship('PostRating', backref='posts', cascade='all, delete-orphan')
 
 
 class Comment(Base):

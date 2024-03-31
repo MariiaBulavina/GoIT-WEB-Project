@@ -3,10 +3,13 @@ from typing import List
 
 from fastapi import HTTPException, status
 import cloudinary.uploader
-from sqlalchemy import Column
+from sqlalchemy import Column, func, desc
 from sqlalchemy.orm import Session
 
-from src.database.models import Post, User, Tag, TransformedPost
+from src.database.models import Post, User, Tag, TransformedPost, PostRating
+from src.schemas.comments import CommentByUser
+from src.schemas.posts import PostProfile, PostsByFilter
+from src.repository import rating as repository_rating
 
 
 async def add_post(post_url: str, public_id: str, description: str, user: User, db: Session) -> Post:
@@ -79,17 +82,6 @@ async def edit_description(post_id: int, description: str, db: Session) -> Post 
     return post
 
 
-async def get_posts(db: Session) -> List[Post]:
-    """
-    Function to get posts.
-
-    :param db: Session: Connection session to database
-    :return: List of posts
-    """
-    result =  db.query(Post).all()
-    return result
-
-
 async def get_my_posts(user: User, db: Session) -> List[Post]:
     """
     Function to get current user's posts.
@@ -142,6 +134,9 @@ async def add_tag_to_post(post: Post, tag: Tag, db: Session) -> Post:
     :param db: Session: Connection session to database
     :return: Post
     """
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Post not found')
+    
     if tag in post.tags:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'The tag {tag.tag} has already been added to this post')
     
@@ -219,3 +214,72 @@ async def get_transformed_post_url(transformed_post_id: int, db: Session) -> Col
         return None
     
     return result.transformed_post_url
+
+
+async def get_all_posts(
+    current_user: User,
+    db: Session,
+    keyword: str = None,
+    tag: str = None,
+    min_rating: float = None,
+    max_rating: float = None
+):
+    """
+    Search all posts in the database based on the provided filters
+    such as keyword, tag, minimum and maximum rating.
+
+    :param current_user: User: The user making the request.
+    :param db: Session: Database session.
+    :param keyword: str, optional: Keyword to filter posts by description.
+    :param tag: str, optional: Tag to filter posts.
+    :param min_rating: float, optional: Minimum rating to filter posts.
+    :param max_rating: float, optional: Maximum rating to filter posts.
+    :return: PostsByFilter: Response containing the list of filtered posts.
+    """
+    query = db.query(Post)
+    
+    if keyword:
+        query = query.filter(Post.description.ilike(f"%{keyword}%"))
+    
+    if tag:
+        query = query.filter(Post.tags.any(Tag.tag == tag))
+
+    if min_rating is not None or max_rating is not None:
+        query = query.join(PostRating, Post.id == PostRating.post_id)
+
+    if min_rating is not None:
+        query = query.group_by(Post.id).having(func.avg(PostRating.rating) >= min_rating)
+
+    if max_rating is not None:
+        query = query.group_by(Post.id).having(func.avg(PostRating.rating) <= max_rating)
+
+    query = query.order_by(desc(Post.created_at))
+    result = query.all()
+    posts = []
+    
+    for post in result:
+        tags = []
+        comments = []
+
+        for comment in post.comments:
+            new_comment = CommentByUser(user_id=comment.user_id, comment=comment.comment_text)
+            comments.append(new_comment)
+
+        for tag in post.tags:
+            new_tag = tag.tag
+            tags.append(new_tag)
+
+        rating = await repository_rating.calculate_average_rating(post.id, db)
+        
+        new_post = PostProfile(
+            id=post.id,
+            url=post.post_url,
+            description=post.description,
+            average_rating=rating,
+            tags=tags,
+            comments=comments,
+        )
+        posts.append(new_post)
+
+    all_posts = PostsByFilter(posts=posts)
+    return all_posts

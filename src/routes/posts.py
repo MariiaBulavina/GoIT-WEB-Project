@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Request, Depends, HTTPException, UploadFile, File, status
+from fastapi import APIRouter, Request, Depends, HTTPException, UploadFile, File, status, Query
 from fastapi.responses import StreamingResponse
+from sqlalchemy.exc import SQLAlchemyError
 
 from src.database.db import get_db
 from src.repository import posts as posts_repository
-from src.schemas.posts import PostResponse
+from src.schemas.posts import PostResponse, PostsByFilter
 from src.services.auth import auth_service
 from src.services.posts import post_service
-from src.database.models import UserRole
+from src.database.models import UserRole, User
 from src.services.qrcode_creation import generate_qrcode
 
 
@@ -69,15 +70,6 @@ async def edit_description(
     return post
 
 
-@router.get("/", response_model=list[PostResponse])
-async def get_posts(
-    request: Request,
-    db=Depends(get_db),
-    user=Depends(auth_service.get_current_user),
-):
-    return await posts_repository.get_posts(db=db)
-
-
 @router.get("/my_posts", response_model=list[PostResponse])
 async def get_my_posts(
     request: Request,
@@ -113,13 +105,18 @@ async def get_post_qrcode(post_id: int, db=Depends(get_db), user=Depends(auth_se
     return StreamingResponse(qr_code_buffer, media_type="image/png")
 
 
-@router.get("/transformed/{transformed_post_id}/qrcode")
-async def get_transformed_post_qrcode(transformed_post_id: int, db=Depends(get_db), user=Depends(auth_service.get_current_user)):
-    url = await posts_repository.get_transformed_post_url(transformed_post_id, db)
-
-    if url is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+@router.get("/", response_model=PostsByFilter) 
+async def search_posts(
+    current_user: User = Depends(auth_service.get_current_user),
+    db = Depends(get_db),
+    keyword: str = Query(default=None),
+    tag: str = Query(default=None),
+    min_rating: int = Query(default=None),
+    max_rating: int = Query(default=None)
     
-    qr_code_buffer = generate_qrcode(url)
-
-    return StreamingResponse(qr_code_buffer, media_type="image/png")
+):
+    try:
+        all_posts = await posts_repository.get_all_posts(current_user, db, keyword, tag, min_rating, max_rating)
+        return all_posts
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))    

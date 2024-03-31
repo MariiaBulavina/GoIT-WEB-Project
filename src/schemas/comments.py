@@ -18,3 +18,7 @@ class CommentResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class CommentByUser(BaseModel):
+    user_id: int
+    comment: str  
