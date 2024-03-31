@@ -1,6 +1,6 @@
 import enum
 
-from sqlalchemy import Column, ForeignKey, Integer, String, func, DateTime, Boolean, Enum, Table, Text
+from sqlalchemy import Column, ForeignKey, Integer, String, func, DateTime, Boolean, Enum, Table, Text, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -46,6 +46,7 @@ class Post(Base):
     post_url = Column(String())
     public_id = Column(String())
     description = Column(Text)
+    average_rating = Column(Float, default=0.0)
     created_at = Column('created_at', DateTime, default=func.now())
     updated_at = Column('updated_at', DateTime, default=func.now())
 
@@ -90,18 +91,18 @@ class TransformedPost(Base):
     post = relationship('Post', backref='transformed_posts')
 
 
-class RatePost(Base):
-    __tablename__ = 'rates_posts'
+class PostRating(Base):
+    __tablename__ = 'posts_rating'
 
     id = Column(Integer, primary_key=True)
-    rate = Column('rate', Integer, default=0)
-    photo_id = Column(Integer, ForeignKey(Post.id, ondelete='CASCADE'))
+    rating = Column('rating', Integer, default=0)
+    post_id = Column(Integer, ForeignKey(Post.id, ondelete='CASCADE'))
     user_id = Column(Integer, ForeignKey(User.id, ondelete='CASCADE'))
     created_at = Column('created_at', DateTime, default=func.now())
     updated_at = Column('updated_at', DateTime, default=func.now())
 
-    post = relationship('Post', backref='rates_posts')
-    user = relationship('User', backref='rates_posts')
+    post = relationship('Post', backref='posts_rating')
+    user = relationship('User', backref='posts_rating')
 
 
 class BlacklistToken(Base):
