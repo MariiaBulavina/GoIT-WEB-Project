@@ -47,7 +47,7 @@ async def update_avatar_user(file: UploadFile = File(...), user: User = Depends(
     :param file: UploadFile: Image for a new avatar 
     :param user: User: Current user
     :param db: Session: Connection to the database
-    :return: The updated user
+    :return: User: The updated user
     """
     public_id = f'FastApiApp/{user.email}'
     res = cloudinary.uploader.upload(file.file, public_id=public_id, overwrite=True)
@@ -63,7 +63,13 @@ async def update_avatar_user(file: UploadFile = File(...), user: User = Depends(
 
 @router.get('/{username}', response_model=UserProfile)
 async def get_user_profile(username: str, db: Session = Depends(get_db)) -> User:
+    """
+    Function to get user profile.
 
+    :param username: str: User name
+    :param db: Session: Connection to the database
+    :return: User object
+    """
     found_user = await repositories_users.get_user_by_username(username, db)
     
     if found_user:
@@ -75,7 +81,14 @@ async def get_user_profile(username: str, db: Session = Depends(get_db)) -> User
 
 @router.get('/id/{user_id}', response_model=UserProfile)
 async def get_user_by_id(user_id: int, db: Session = Depends(get_db), user: User = Depends(auth_service.get_current_user)) -> User:
+    """
+    Function to get user profile.
 
+    :param user_id: int: User id
+    :param db: Session: Connection to the database
+    :param user: User: The currently authenticated user
+    :return: User object
+    """
     found_user = await repositories_users.get_user_by_id(user_id, db)
     if found_user:
         user = await repositories_users.get_user_profile(found_user, db)
@@ -86,7 +99,17 @@ async def get_user_by_id(user_id: int, db: Session = Depends(get_db), user: User
 
 @router.patch('/{username}', dependencies=[Depends(access_to_routes)], response_model=UserResponse)
 async def manage_user(username: str, action: Action, role: UserRole = UserRole.user, user: User = Depends(auth_service.get_current_user), db: Session = Depends(get_db)):
-    
+    """
+    Function to manage a user's role or ban status.
+
+    :param username: str: The username of the user to manage
+    :param action: Action: The action to perform. This can be 'change_user_role', 'ban', or 'unban'
+    :param role: UserRole, optional: The new role to assign to the user
+    :param user: User: The currently authenticated user
+    :param db: Session: The database session
+    :return: UserResponse
+
+    """
     user_to_change = await repositories_users.get_user_by_username(username, db)
 
     if not user_to_change:

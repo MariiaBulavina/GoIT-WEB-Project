@@ -13,6 +13,12 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 def get_db():
+    '''
+    Generator function to manage the database session.
+
+    :yield: Session: The database session
+
+    '''
 
     db = SessionLocal()
 

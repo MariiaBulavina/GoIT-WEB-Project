@@ -16,7 +16,7 @@ async def create_rating(db: Session, post_id: int, rating: int, user: User) -> P
     :param post_id: int: id of the post being rated
     :param rating: int: New rating value (1 to 5 stars)
     :param user: User: Current user
-    :return: Created Post rating
+    :return: PostRating: Created Post rating
     """
     post = db.query(Post).filter(Post.id == post_id).first()
 
@@ -50,7 +50,7 @@ async def calculate_average_rating(post_id: int, db: Session) -> Decimal:
 
     :param post_id: int: id of the post which the rating is calculated
     :param db: Session: Connection session to database
-    :return: Average rating for the post as a decimal number
+    :return: Decimal: Average rating for the post as a decimal number
     """
     query = select(func.avg(PostRating.rating).label('average_rating')).where(PostRating.post_id == post_id)
     result = db.execute(query)
@@ -65,7 +65,7 @@ async def delete_rating(post_id: int, user_id: int, db: Session) -> PostRating:
     :param post_id: int: id of the post which the rating is calculated
     :param user_id: int: id of the user who gave the rating
     :param db: Session: Connection session to database
-    :return: Deleted Post rating
+    :return: PostRating: Deleted Post rating
     """
 
     rating = db.query(PostRating).filter(and_(PostRating.user_id == user_id, PostRating.post_id == post_id)).first()
@@ -93,7 +93,7 @@ async def get_user_ratings(user_id: int, db: Session) -> List[PostRating]:
 
     :param user_id: int: id of the user who gave ratings
     :param db: Session: Connection session to database
-    :return: List of ratings left by the user
+    :return: List[PostRating]: List of ratings left by the user
     """
     result = db.query(PostRating).filter(PostRating.user_id == user_id).all()
 

@@ -15,7 +15,15 @@ router = APIRouter(tags=["comments"])
 
 @router.post("/{post_id}/comments", response_model=CommentResponse)
 async def create_comment_for_post(post_id: int, comment_data: CommentModel, db: Session = Depends(get_db),  user=Depends(auth_service.get_current_user)):
+    """
+    Function to create comment for post.
 
+    :param post_id: int: Post id
+    :param comment_data: CommentModel: Text of comment
+    :param db: Session: Connection to the database
+    :param user: User: The currently authenticated user
+    :return: Comment
+    """
     post = await posts_repository.get_post(post_id, db)
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found") 
@@ -29,6 +37,14 @@ async def create_comment_for_post(post_id: int, comment_data: CommentModel, db: 
 
 @router.get("/comments/{comment_id}", response_model=CommentResponse)
 async def read_comment(comment_id: int, db: Session = Depends(get_db), user=Depends(auth_service.get_current_user)):
+    """
+    Function to read comment.
+
+    :param comment_id: int: Comment id
+    :param db: Session: Connection to the database
+    :param user: User: The currently authenticated user
+    :return: Comment
+    """
     comment = await comments_repository.get_comment(db, comment_id)
 
     if not comment:
@@ -39,6 +55,14 @@ async def read_comment(comment_id: int, db: Session = Depends(get_db), user=Depe
 @router.get("/{post_id}/comments", response_model=List[CommentResponse])
 
 async def read_comment_for_post(post_id: int, db: Session = Depends(get_db), user=Depends(auth_service.get_current_user)):
+    """
+    Function to read comment to post.
+
+    :param post_id: int: Post id
+    :param db: Session: Connection to the database
+    :param user: User: The currently authenticated user
+    :return: Comment
+    """
     comments = await comments_repository.get_comments_for_post(post_id, db)
 
     if not comments:
@@ -48,6 +72,15 @@ async def read_comment_for_post(post_id: int, db: Session = Depends(get_db), use
 
 @router.put("/comments/{comment_id}", response_model=CommentResponse)
 async def update_existing_comment(comment_id: int, comment_data: CommentModel, db: Session = Depends(get_db), user=Depends(auth_service.get_current_user)):
+    """
+    Function to update existing comment.
+
+    :param comment_id: int: Comment id
+    :param comment_data: CommentModel: New text of comment
+    :param db: Session: Connection to the database
+    :param user: User: The currently authenticated user
+    :return: Comment
+    """
     comment = await comments_repository.update_comment(db, comment_id, comment_data, user)
     
     if not comment:
@@ -57,7 +90,14 @@ async def update_existing_comment(comment_id: int, comment_data: CommentModel, d
 
 @router.delete("/comments/{comment_id}", response_model=CommentResponse)
 async def delete_existing_comment(comment_id: int, db: Session = Depends(get_db), user=Depends(auth_service.get_current_user)):
+    """
+    Function to delete existing comment.
 
+    :param comment_id: int: Comment id
+    :param db: Session: Connection to the database
+    :param user: User: The currently authenticated user
+    :return: Comment
+    """
     if user.user_role != UserRole.moderator and user.user_role != UserRole.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to delete this comment")
     

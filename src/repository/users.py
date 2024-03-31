@@ -17,7 +17,7 @@ async def get_user_by_email(email: str, db: Session) -> User:
 
     :param email: str: Email of the user we want to get
     :param db: Session: Connection to the database
-    :return: The first user found in the database that matches the given email
+    :return: User: The first user found in the database that matches the given email
     """
     return db.query(User).filter(User.email == email).first()
 
@@ -29,7 +29,7 @@ async def create_user(body: UserModel, db: Session) -> User:
 
     :param body: UserModel: Information to create a user
     :param db: Session: Connection to the database
-    :return: A user object
+    :return: User object
     """
     avatar = None
 
@@ -86,7 +86,7 @@ async def update_avatar_url(email: str, url: str | None, db: Session) -> User:
     :param email: str: Email of the user whose avatar needs to be changed
     :param url: str | None: New avatar url
     :param db: Session: Connection to the database
-    :return: The updated user
+    :return: User: The updated user
     """
     user = await get_user_by_email(email, db)
     user.avatar = url
@@ -100,7 +100,7 @@ async def get_user_by_username(username: str, db: Session) -> User | None:
 
     :param username: str: Name of user
     :param db: Session: Connection session to database
-    :return: User or None
+    :return: User | None
     """
     try:
         user = db.query(User).filter(User.username == username).first()
@@ -115,7 +115,7 @@ async def get_user_by_id(user_id: int, db: Session) -> User | None:
 
     :param user_id: int: User id
     :param db: Session: Connection session to database
-    :return: User or None
+    :return: User | None
     """
     try:
         user = db.query(User).filter(User.id == user_id).first()
@@ -131,7 +131,7 @@ async def change_role(email: str, role: UserRole, db: Session) -> User | None:
     :param email: str: Email
     :param role: UserRole: Role of user
     :param db: Session: Connection session to database
-    :return: User or None
+    :return: User | None
     """
     user = await get_user_by_email(email, db)
     if user:
@@ -147,7 +147,7 @@ async def ban_user(email: str, db: Session) -> User | None:
 
     :param email: str: Email
     :param db: Session: Connection session to database
-    :return: User or None
+    :return: User | None
     """
     user = await get_user_by_email(email, db)
     if user:
@@ -163,7 +163,7 @@ async def unban_user(email: str, db: Session) -> User | None:
 
     :param email: str: Email
     :param db: Session: Connection session to database
-    :return: User or None
+    :return: User | None
     """
     user = await get_user_by_email(email, db)
     if user:
@@ -179,7 +179,7 @@ async def get_user_profile(user: User, db: Session) -> UserProfile | None:
 
     :param user: User: User
     :param db: Session: Connection session to database
-    :return: User profile or None
+    :return: UserProfile | None
     """
     if user:
         find_posts = select(func.count()).where(Post.user_id == user.id) 

@@ -45,7 +45,7 @@ async def delete_post(post_id: int, db: Session) -> Post | None:
 
     :param post_id: int: id of the post
     :param db: Session: Connection session to database
-    :return: Post or None
+    :return: Post | None
     """
     post = (
         db.query(Post)
@@ -67,7 +67,7 @@ async def edit_description(post_id: int, description: str, db: Session) -> Post 
     :param post_id: int: id of the post
     :param description: str: Description of the post
     :param db: Session: Connection session to database
-    :return: Post or None
+    :return: Post | None
     """
     post = (
         db.query(Post)
@@ -88,7 +88,7 @@ async def get_my_posts(user: User, db: Session) -> List[Post]:
 
     :param user: User: Author of the post
     :param db: Session: Connection session to database
-    :return: List of posts
+    :return: List[Post]
     """
     result =  db.query(Post).filter(Post.user_id == user.id).all()
     return result
@@ -101,7 +101,7 @@ async def get_post(post_id: int, db: Session) -> Post | None:
 
     :param post_id: int: id of the post
     :param db: Session: Connection session to database
-    :return: Post or None
+    :return: Post | None
     """
     return (
         db.query(Post)
@@ -116,7 +116,7 @@ async def get_post_url(post_id: int, db: Session) -> Column[str] | None:
 
     :param post_id: int: id of the post
     :param db: Session: Connection session to database
-    :return: Url of the post or None
+    :return: Column[str] | None: Url of the post 
     """
     result = db.query(Post).filter(Post.id == post_id).first()
     if result is None:
@@ -156,7 +156,7 @@ async def get_post_by_url(post_url: str, db: Session) -> Post | None:
 
     :param post_url: str: Url of the post
     :param db: Session: Connection session to database
-    :return: Post or None
+    :return: Post | None
     """
     result = db.query(Post).filter(Post.post_url == post_url).first()
     if result is None:
@@ -171,7 +171,7 @@ async def get_transformed_post_by_url(transformed_post_url: str, db: Session) ->
 
     :param transformed_post_url: str: Url of the transformed post
     :param db: Session: Connection session to database
-    :return: Transformed post or None
+    :return: Transformed post | None
     """
     result = db.query(TransformedPost).filter(TransformedPost.transformed_post_url == transformed_post_url).first()
     if result is None:
@@ -187,7 +187,7 @@ async def add_transformed_post(transformed_post_url: str, post_id: int, db: Sess
     :param transformed_post_url: str: Url of the transformed post
     :param post_id: int: id of the post we are transforming
     :param db: Session: Connection session to database
-    :return: Transformed post
+    :return: TransformedPost
     """
     transformed_post = TransformedPost(
         transformed_post_url=transformed_post_url,
@@ -207,7 +207,7 @@ async def get_transformed_post_url(transformed_post_id: int, db: Session) -> Col
 
     :param transformed_post_id: int: id of the transformed post
     :param db: Session: Connection session to database
-    :return: Url of the transformed post or None
+    :return: Column[str] | None: Url of the transformed post 
     """
     result = db.query(TransformedPost).filter(TransformedPost.id == transformed_post_id).first()
     if result is None:

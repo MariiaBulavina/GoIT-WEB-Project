@@ -25,7 +25,7 @@ async def signup(body: UserModel, bt: BackgroundTasks, request: Request, db: Ses
     :param bt: BackgroundTasks: Background task to run
     :param request: Request: The base url of the request
     :param db: Session: Connection to the database
-    :return: A dictionary with the user and a detail message
+    :return: dict: A dictionary with the user and a detail message
     """
     exist_user = await repository_users.get_user_by_email(body.email, db)
 
@@ -47,7 +47,7 @@ async def login(body: OAuth2PasswordRequestForm = Depends(), db: Session = Depen
 
     :param body: OAuth2PasswordRequestForm: The username and password 
     :param db: Session: Connection to the database
-    :return: A dictionary with the access_token, refresh_token and token type
+    :return: dict: A dictionary with the access_token, refresh_token and token type
     """
     user = await repository_users.get_user_by_email(body.username, db)
 
@@ -78,7 +78,7 @@ async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(sec
 
     :param credentials: HTTPAuthorizationCredentials: HTTP authorization credentials that contain a refresh token
     :param db: Session: Connection to the database
-    :return: A new access_token and refresh_token for the user
+    :return: dict: A new access_token and refresh_token for the user
     """
     token = credentials.credentials
     email = await auth_service.decode_refresh_token(token)
@@ -102,7 +102,7 @@ async def confirmed_email(token: str, db: Session = Depends(get_db)):
 
     :param token: str: Confirmation token
     :param db: Session: Connection to the database
-    :return: A message if the email is already confirmed or confirms the email
+    :return: dict: A message if the email is already confirmed or confirms the email
     """
     email = await auth_service.get_email_from_token(token)
     user = await repository_users.get_user_by_email(email, db)
@@ -127,7 +127,7 @@ async def request_email(body: RequestEmail, background_tasks: BackgroundTasks, r
     :param background_tasks: BackgroundTasks: Background task to run
     :param request: Request: The base url of the request
     :param db: Session: Connection to the database
-    :return: A message that tells the user to check their email for confirmation
+    :return: dict: A message that tells the user to check their email for confirmation
     """
     user = await repository_users.get_user_by_email(body.email, db)
 
@@ -155,5 +155,5 @@ async def logout(credentials: HTTPAuthorizationCredentials = Security(security),
     token = credentials.credentials
 
     await repository_users.add_to_blacklist(token, db)
-    return {"message": "USER_IS_LOGOUT"}
+    return {"message": "User is logout"}
                      

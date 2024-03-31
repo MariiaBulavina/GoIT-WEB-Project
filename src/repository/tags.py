@@ -36,7 +36,7 @@ async def get_tag_by_name(db: Session, tag: str) -> Tag | None:
 
     :param db: Session: Connection session to database
     :param tag_name: str: Name of tag
-    :return: Tag or None
+    :return: Tag | None
     """
     return db.query(Tag).filter(Tag.tag == tag).first()
 

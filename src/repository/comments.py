@@ -40,7 +40,7 @@ async def get_comment(db: Session, comment_id: int) -> Comment | None:
 
     :param db: Session: Connection session to database
     :param comment_id: int: Unique identifier of post
-    :return: Comment or None
+    :return: Comment | None
     """
     return db.query(Comment).filter(Comment.id == comment_id).first()
 
@@ -53,7 +53,7 @@ async def update_comment(db: Session, comment_id: int, comment_data: CommentMode
     :param comment_id: int: Unique identifier of post
     :param comment_data: CommentModel: information to comment
     :param user: User: Author of the comment
-    :return: Comment or None
+    :return: Comment | None
     """
     comment = db.query(Comment).filter(and_(Comment.id == comment_id, Comment.user_id == user.id)).first()
     if not comment:
@@ -75,7 +75,7 @@ async def delete_comment(db: Session, comment_id: int) -> Comment | None:
 
     :param db: Session: Connection session to database
     :param comment_id: int: Unique identifier of post
-    :return: Comment or None
+    :return: Comment | None
     """
     comment = db.query(Comment).filter(Comment.id == comment_id).first()
     if not comment:
@@ -92,7 +92,7 @@ async def get_comments_for_post(post_id: int, db: Session) -> List[Comment] | No
 
     :param post_id: int: Unique identifier of post
     :param db: Session: Connection session to database
-    :return: List of comments or None
+    :return: List[Comment] | None
     """
     return  db.query(Comment).filter(Comment.post_id == post_id).all()
 
