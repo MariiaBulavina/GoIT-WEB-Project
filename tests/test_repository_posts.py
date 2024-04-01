@@ -10,8 +10,9 @@ from sqlalchemy.orm import Session
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 load_dotenv()
 
-from src.repository import posts
-from src.database.models import User, Post, Tag, TransformedPost
+from src.repository import posts  # noqa: E402
+from src.database.models import User, Post, Tag, TransformedPost  # noqa: E402
+from src.schemas.posts import PostsByFilter, PostProfile  # noqa: E402
 
 
 class TestPostsRepository(unittest.IsolatedAsyncioTestCase):
@@ -78,20 +79,6 @@ class TestPostsRepository(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result, mock_post)
         self.assertEqual(result.description, "new_description")
         self.assertEqual(result.updated_at, datetime(2022, 1, 1))
-
-    async def test_get_posts(self):
-       
-        mock_session = MagicMock(spec=Session)
-        mock_posts = [MagicMock(spec=Post), MagicMock(spec=Post)]
-        mock_session.query().all.return_value = mock_posts
-
-        result = await posts.get_posts(mock_session)
-
-        mock_session.query().all.assert_called_once()
-
-        self.assertIsInstance(result, list)
-        self.assertIsInstance(result[0], Post)
-        self.assertIsInstance(result[1], Post)
 
     async def test_get_my_posts(self):
      
@@ -162,6 +149,17 @@ class TestPostsRepository(unittest.IsolatedAsyncioTestCase):
         mock_session.query().filter().first.assert_called_once()
 
         self.assertEqual(result, mock_post)
+
+    async def test_get_transformed_post_by_url(self):
+
+        mock_db_session = MagicMock(spec=Session)
+        mock_transformed_post = MagicMock(spec=TransformedPost)
+        mock_db_session.query().filter().first.return_value = mock_transformed_post
+
+        result = await posts.get_transformed_post_by_url("test_url", mock_db_session)
+
+        self.assertEqual(result, mock_transformed_post)
+        mock_db_session.query().filter().first.assert_called_once()
 
     async def test_add_transformed_post(self):
 

@@ -10,9 +10,9 @@ from sqlalchemy.orm import Session
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 load_dotenv()
 
-from src.repository import comments
-from src.schemas.comments import CommentModel
-from src.database.models import User, Comment
+from src.repository import comments  # noqa: E402
+from src.schemas.comments import CommentModel  # noqa: E402
+from src.database.models import User, Comment  # noqa: E402
 
 
 class TestComments(unittest.IsolatedAsyncioTestCase):
