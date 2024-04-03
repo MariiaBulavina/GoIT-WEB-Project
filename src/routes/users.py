@@ -2,7 +2,7 @@ import pickle
 
 import cloudinary
 import cloudinary.uploader
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status, Request
 from sqlalchemy.orm import Session
 
 from src.database.models import User, UserRole
@@ -12,7 +12,8 @@ from src.schemas.users import UserDb, UserResponse, Action, UserProfile
 from src.database.db import get_db
 from src.conf.config import settings
 from src.repository import users as repositories_users
-
+from src.repository import posts as posts_repository
+from src.schemas.posts import PostResponse
 
 router = APIRouter(prefix='/users', tags=['users'])
 
@@ -61,7 +62,7 @@ async def update_avatar_user(file: UploadFile = File(...), user: User = Depends(
     return user
 
 
-@router.get('/{username}', response_model=UserProfile)
+@router.get('/', response_model=UserProfile)
 async def get_user_profile(username: str, db: Session = Depends(get_db)) -> User:
     """
     Function to get user profile.
@@ -79,7 +80,7 @@ async def get_user_profile(username: str, db: Session = Depends(get_db)) -> User
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
     
 
-@router.get('/id/{user_id}', response_model=UserProfile)
+@router.get('/{user_id}', response_model=UserProfile)
 async def get_user_by_id(user_id: int, db: Session = Depends(get_db), user: User = Depends(auth_service.get_current_user)) -> User:
     """
     Function to get user profile.
@@ -97,12 +98,12 @@ async def get_user_by_id(user_id: int, db: Session = Depends(get_db), user: User
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
 
 
-@router.patch('/{username}', dependencies=[Depends(access_to_routes)], response_model=UserResponse)
-async def manage_user(username: str, action: Action, role: UserRole = UserRole.user, user: User = Depends(auth_service.get_current_user), db: Session = Depends(get_db)):
+@router.patch('/{user_id}', dependencies=[Depends(access_to_routes)], response_model=UserResponse)
+async def manage_user(user_id: int, action: Action, role: UserRole = UserRole.user, user: User = Depends(auth_service.get_current_user), db: Session = Depends(get_db)):
     """
     Function to manage a user's role or ban status.
 
-    :param username: str: The username of the user to manage
+    :param user_id: int: id of the user to manage
     :param action: Action: The action to perform. This can be 'change_user_role', 'ban', or 'unban'
     :param role: UserRole, optional: The new role to assign to the user
     :param user: User: The currently authenticated user
@@ -110,7 +111,7 @@ async def manage_user(username: str, action: Action, role: UserRole = UserRole.u
     :return: UserResponse
 
     """
-    user_to_change = await repositories_users.get_user_by_username(username, db)
+    user_to_change = await repositories_users.get_user_by_id(user_id, db)
 
     if not user_to_change:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
@@ -153,3 +154,21 @@ async def manage_user(username: str, action: Action, role: UserRole = UserRole.u
         else:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='You do not have permission')
         
+
+@router.get("/{user_id}/posts", response_model=list[PostResponse])
+async def get_user_posts(
+    user_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(auth_service.get_current_user),
+):
+    """
+    Function to get posts belonging to the current user.
+
+    :param user_id: int: Post author id
+    :param request: Request: HTTP request
+    :param db: Session: Connection to the database
+    :param user: User: The currently authenticated user
+    :return: list[PostResponse]: List of posts
+    """
+    return await posts_repository.get_user_posts(user_id=user_id, db=db)

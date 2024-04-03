@@ -12,7 +12,6 @@ load_dotenv()
 
 from src.repository import posts  # noqa: E402
 from src.database.models import User, Post, Tag, TransformedPost  # noqa: E402
-from src.schemas.posts import PostsByFilter, PostProfile  # noqa: E402
 
 
 class TestPostsRepository(unittest.IsolatedAsyncioTestCase):

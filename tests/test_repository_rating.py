@@ -48,7 +48,7 @@ class TestRatingRepository(unittest.IsolatedAsyncioTestCase):
         mock_user = MagicMock(spec=User)
         mock_user.id = 1
 
-        mock_session.query().filter().first.return_value = None  # Simulate post not found
+        mock_session.query().filter().first.return_value = None  
 
         with self.assertRaises(HTTPException) as context:
             await rating.create_rating(mock_session, 1, 5, mock_user)

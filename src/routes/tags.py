@@ -1,5 +1,3 @@
-from typing import List
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -8,11 +6,11 @@ from src.repository import posts as posts_repository
 from src.database.db import get_db
 from src.schemas.tags import TagModel, TagResponse
 from src.services.auth import auth_service
-from src.database.models import User
+from src.database.models import User, UserRole
 
-router = APIRouter(tags=["tags"])
+router = APIRouter(prefix='/tags', tags=["tags"])
 
-@router.post("/{post_id}/tags", response_model=TagResponse)
+@router.post("/", response_model=TagResponse)
 async def create_new_tag(post_id: int, tag: TagModel, db: Session = Depends(get_db), user: User = Depends(auth_service.get_current_user)):
     """
     Function to create new tag.
@@ -30,7 +28,7 @@ async def create_new_tag(post_id: int, tag: TagModel, db: Session = Depends(get_
     return tag
 
 
-@router.get("/tags/{tag_name}", response_model=TagResponse)
+@router.get("/{tag_name}", response_model=TagResponse)
 async def read_tag(tag_name: str, db: Session = Depends(get_db), user: User = Depends(auth_service.get_current_user)):
     """
     Function to read tag.
@@ -46,25 +44,7 @@ async def read_tag(tag_name: str, db: Session = Depends(get_db), user: User = De
     return tag
 
 
-@router.get("/{post_id}/tags", response_model=List[TagResponse])
-async def read_tags(post_id: int, db: Session = Depends(get_db), user: User = Depends(auth_service.get_current_user)):
-    """
-    Function to get tags for a specific post.
-
-    :param post_id: int: Post id
-    :param db: Session: Connection to the database
-    :param user: User: The currently authenticated user
-    :return: List[TagResponse]
-    """
-    post = await posts_repository.get_post(post_id, db)
-    if not post:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
-    
-    tags = await tags_repository.get_post_tags(post, db)
-    return tags
-
-
-@router.put("/tags/{tag_id}", response_model=TagResponse)
+@router.put("/{tag_id}", response_model=TagResponse)
 async def update_existing_tag(tag_id: int, tag_data: TagModel, db: Session = Depends(get_db), user: User = Depends(auth_service.get_current_user)):
     """
     Function to update existing tag.
@@ -75,11 +55,14 @@ async def update_existing_tag(tag_id: int, tag_data: TagModel, db: Session = Dep
     :param user: User: The currently authenticated user
     :return: Tag object
     """
+    if user.user_role != UserRole.admin and user.user_role != UserRole.moderator:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to change tags")
+
     tag = await tags_repository.update_tag(db, tag_id, tag_data)
     return tag
 
 
-@router.delete("/tags/{tag_id}", response_model=TagResponse)
+@router.delete("/{tag_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_existing_tag(tag_id: int, db: Session = Depends(get_db), user: User = Depends(auth_service.get_current_user)):
     """
     Function to delete existing tag.
@@ -89,5 +72,7 @@ async def delete_existing_tag(tag_id: int, db: Session = Depends(get_db), user: 
     :param user: User: The currently authenticated user
     :return: Tag object
     """
-    tag = await tags_repository.delete_tag(db, tag_id)
-    return tag
+    if user.user_role != UserRole.admin and user.user_role != UserRole.moderator:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to delete tags")
+
+    await tags_repository.delete_tag(db, tag_id)

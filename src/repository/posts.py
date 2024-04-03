@@ -82,15 +82,15 @@ async def edit_description(post_id: int, description: str, db: Session) -> Post 
     return post
 
 
-async def get_my_posts(user: User, db: Session) -> List[Post]:
+async def get_user_posts(user_id, db: Session) -> List[Post]:
     """
     Function to get current user's posts.
 
-    :param user: User: Author of the post
+    :param user_id: int: Post author id
     :param db: Session: Connection session to database
     :return: List[Post]
     """
-    result =  db.query(Post).filter(Post.user_id == user.id).all()
+    result =  db.query(Post).filter(Post.user_id == user_id).all()
     return result
 
 

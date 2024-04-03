@@ -11,9 +11,9 @@ from src.database.models import User, UserRole
 from src.repository.posts import get_post
 
 
-router = APIRouter(tags=['rating'])
+router = APIRouter(prefix="/rating", tags=['rating'])
 
-@router.post('/{post_id}/rating', response_model=RatingResponse)
+@router.post('/', response_model=RatingResponse)
 async def create_rating(
     post_id: int,
     rating: int = Query(description="From one to five stars", ge=1, le=5),
@@ -36,28 +36,7 @@ async def create_rating(
     created_rating = await repository_rating.create_rating(db=db, post_id=post_id, rating=rating, user=current_user)
     return created_rating
 
-
-@router.get('/{post_id}/rating', response_model=AverageRatingResponse)
-async def get_post_rating(
-    post_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(auth_service.get_current_user)
-    ):
-    """
-    Retrieve the average rating of a specific post.
-
-    :param post_id: int: The id of the post to retrieve the average rating for
-    :param db: Session: The database session
-    :param current_user: User: The currently authenticated user
-    :return: AverageRatingResponse
-    """
-    post = await get_post(post_id, db)
-    if not post:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Post not found')
-    return post
-
-
-@router.delete('/{post_id}/rating', response_model=RatingResponse)
+@router.delete('/', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_rating(
     post_id: int,
     user_id: int,
@@ -76,11 +55,10 @@ async def delete_rating(
     if current_user.user_role != UserRole.moderator and current_user.user_role != UserRole.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to delete rating")
     
-    deleted_rating = await repository_rating.delete_rating(post_id, user_id, db)
-    return deleted_rating
+    await repository_rating.delete_rating(post_id, user_id, db)
 
 
-@router.get('/users/{user_id}/rating', response_model=List[RatingResponse])
+@router.get('/', response_model=List[RatingResponse])
 async def get_user_ratings(
     user_id: int,
     db: Session = Depends(get_db),

@@ -11,9 +11,9 @@ from sqlalchemy.orm import Session
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 load_dotenv()
 
-from src.repository import tags
-from src.schemas.tags import TagModel
-from src.database.models import Tag
+from src.repository import tags  # noqa: E402
+from src.schemas.tags import TagModel  # noqa: E402
+from src.database.models import Tag  # noqa: E402
 
 
 class TestTagRepository(unittest.IsolatedAsyncioTestCase):

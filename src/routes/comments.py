@@ -1,5 +1,3 @@
-from typing import List
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -11,9 +9,9 @@ from src.services.auth import auth_service
 from src.repository import posts as posts_repository
 
 
-router = APIRouter(tags=["comments"])
+router = APIRouter(prefix="/comments", tags=["comments"])
 
-@router.post("/{post_id}/comments", response_model=CommentResponse)
+@router.post("/", response_model=CommentResponse)
 async def create_comment_for_post(post_id: int, comment_data: CommentModel, db: Session = Depends(get_db),  user=Depends(auth_service.get_current_user)):
     """
     Function to create comment for post.
@@ -35,7 +33,7 @@ async def create_comment_for_post(post_id: int, comment_data: CommentModel, db: 
     return comment
 
 
-@router.get("/comments/{comment_id}", response_model=CommentResponse)
+@router.get("/{comment_id}", response_model=CommentResponse)
 async def read_comment(comment_id: int, db: Session = Depends(get_db), user=Depends(auth_service.get_current_user)):
     """
     Function to read comment.
@@ -52,25 +50,8 @@ async def read_comment(comment_id: int, db: Session = Depends(get_db), user=Depe
     return comment
 
 
-@router.get("/{post_id}/comments", response_model=List[CommentResponse])
 
-async def read_comment_for_post(post_id: int, db: Session = Depends(get_db), user=Depends(auth_service.get_current_user)):
-    """
-    Function to read comment to post.
-
-    :param post_id: int: Post id
-    :param db: Session: Connection to the database
-    :param user: User: The currently authenticated user
-    :return: Comment
-    """
-    comments = await comments_repository.get_comments_for_post(post_id, db)
-
-    if not comments:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comments not found")
-    return comments
-
-
-@router.put("/comments/{comment_id}", response_model=CommentResponse)
+@router.put("/{comment_id}", response_model=CommentResponse)
 async def update_existing_comment(comment_id: int, comment_data: CommentModel, db: Session = Depends(get_db), user=Depends(auth_service.get_current_user)):
     """
     Function to update existing comment.
@@ -88,7 +69,7 @@ async def update_existing_comment(comment_id: int, comment_data: CommentModel, d
     return comment
 
 
-@router.delete("/comments/{comment_id}", response_model=CommentResponse)
+@router.delete("/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_existing_comment(comment_id: int, db: Session = Depends(get_db), user=Depends(auth_service.get_current_user)):
     """
     Function to delete existing comment.
@@ -104,4 +85,3 @@ async def delete_existing_comment(comment_id: int, db: Session = Depends(get_db)
     comment = await comments_repository.delete_comment(db, comment_id)
     if not comment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
-    return comment

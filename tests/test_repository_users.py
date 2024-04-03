@@ -9,9 +9,9 @@ from sqlalchemy.orm.session import Session
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 load_dotenv()
 
-from src.repository import users
-from src.database.models import User, UserRole
-from src.schemas.users import UserModel
+from src.repository import users  # noqa: E402
+from src.database.models import User, UserRole  # noqa: E402
+from src.schemas.users import UserModel  # noqa: E402
 
 
 class TestUserRepository(unittest.IsolatedAsyncioTestCase):

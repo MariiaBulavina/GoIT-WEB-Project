@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import APIRouter, Request, Depends, HTTPException, UploadFile, File, status, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.exc import SQLAlchemyError
@@ -10,6 +12,11 @@ from src.services.auth import auth_service
 from src.services.posts import post_service
 from src.database.models import UserRole, User
 from src.services.qrcode_creation import generate_qrcode
+from src.repository import comments as comments_repository
+from src.schemas.comments import CommentResponse
+from src.repository import tags as tags_repository
+from src.schemas.tags import TagResponse
+from src.schemas.rating import AverageRatingResponse
 
 
 router = APIRouter(prefix="/posts", tags=["posts"])
@@ -43,7 +50,7 @@ async def add_post(
     )
 
 
-@router.delete("/{post_id}", response_model=PostResponse)
+@router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_post(
     request: Request,
     post_id: int,
@@ -59,7 +66,7 @@ async def delete_post(
     :param user: User: The currently authenticated user
     :return: Post
     """
-    post = await posts_repository.delete_post(post_id=post_id, db=db)
+    post = await posts_repository.get_post(post_id, db)
 
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
@@ -67,10 +74,10 @@ async def delete_post(
     if post.user_id != user.id and user.user_role != UserRole.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to delete this post")
     
-    return post
+    await posts_repository.delete_post(post_id=post_id, db=db)
 
 
-@router.put("/{post_id}", response_model=PostResponse)
+@router.patch("/{post_id}", response_model=PostResponse)
 async def edit_description(
     request: Request,
     post_id: int,
@@ -88,33 +95,16 @@ async def edit_description(
     :param user: User: The currently authenticated user
     :return: Post
     """
-    post = await posts_repository.edit_description(
-        post_id=post_id, description=description, db=db
-    )
+    post = await posts_repository.get_post(post_id, db)
+    
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
     
     if post.user_id != user.id and user.user_role != UserRole.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to edit this post")
     
-    return post
-
-
-@router.get("/my_posts", response_model=list[PostResponse])
-async def get_my_posts(
-    request: Request,
-    db: Session = Depends(get_db),
-    user: User = Depends(auth_service.get_current_user),
-):
-    """
-    Function to get posts belonging to the current user.
-
-    :param request: Request: HTTP request
-    :param db: Session: Connection to the database
-    :param user: User: The currently authenticated user
-    :return: list[PostResponse]: List of posts
-    """
-    return await posts_repository.get_my_posts(user=user, db=db)
+    edited_post = await posts_repository.edit_description(post_id=post_id, description=description, db=db)
+    return edited_post
 
 
 @router.get("/{post_id}", response_model=PostResponse)
@@ -185,3 +175,59 @@ async def search_posts(
         return all_posts
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=str(e))    
+
+
+@router.get("/{post_id}/comments", response_model=List[CommentResponse])
+async def read_comment_for_post(post_id: int, db: Session = Depends(get_db), user=Depends(auth_service.get_current_user)):
+    """
+    Function to read comment to post.
+
+    :param post_id: int: Post id
+    :param db: Session: Connection to the database
+    :param user: User: The currently authenticated user
+    :return: Comment
+    """
+    comments = await comments_repository.get_comments_for_post(post_id, db)
+
+    if not comments:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comments not found")
+    return comments
+
+
+@router.get("/{post_id}/tags", response_model=List[TagResponse])
+async def read_tags(post_id: int, db: Session = Depends(get_db), user: User = Depends(auth_service.get_current_user)):
+    """
+    Function to get tags for a specific post.
+
+    :param post_id: int: Post id
+    :param db: Session: Connection to the database
+    :param user: User: The currently authenticated user
+    :return: List[TagResponse]
+    """
+    post = await posts_repository.get_post(post_id, db)
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+    
+    tags = await tags_repository.get_post_tags(post, db)
+    return tags
+
+
+@router.get('/{post_id}/rating', response_model=AverageRatingResponse)
+async def get_post_rating(
+    post_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth_service.get_current_user)
+    ):
+    """
+    Retrieve the average rating of a specific post.
+
+    :param post_id: int: The id of the post to retrieve the average rating for
+    :param db: Session: The database session
+    :param current_user: User: The currently authenticated user
+    :return: AverageRatingResponse
+    """
+    
+    post = await posts_repository.get_post(post_id, db)
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Post not found')
+    return post
