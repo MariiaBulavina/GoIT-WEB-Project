@@ -79,21 +79,27 @@ class TestPostsRepository(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.description, "new_description")
         self.assertEqual(result.updated_at, datetime(2022, 1, 1))
 
-    async def test_get_my_posts(self):
+    async def test_get_user_posts(self):
      
+        mock_post = MagicMock(spec=Post)
+
+        user_id = 1
+
+        posts_data = [
+            mock_post(id=1, user_id=1, title="Post 1", content="Content 1"),
+            mock_post(id=2, user_id=1, title="Post 2", content="Content 2")
+        ]
+
         mock_session = MagicMock(spec=Session)
-        mock_user = MagicMock(spec=User)
-        mock_user.id = 1
-        mock_posts = [MagicMock(spec=Post), MagicMock(spec=Post)]
-        mock_session.query().filter().all.return_value = mock_posts
+        mock_session.query.return_value.filter.return_value.all.return_value = posts_data
 
-        result = await posts.get_my_posts(mock_user, mock_session)
+        result = await posts.get_user_posts(user_id, mock_session)
 
-        mock_session.query().filter().all.assert_called_once()
+        self.assertEqual(result, posts_data)
+        self.assertEqual(result[0].user_id, posts_data[0].user_id)
 
-        self.assertIsInstance(result, list)
-        self.assertIsInstance(result[0], Post)
-        self.assertIsInstance(result[1], Post)
+        mock_session.query.assert_called_once_with(Post)
+        mock_session.query.return_value.filter.return_value.all.assert_called_once()
 
     async def test_get_post(self):
        

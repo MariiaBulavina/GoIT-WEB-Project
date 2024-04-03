@@ -11,7 +11,7 @@ from src.repository import posts as posts_repository
 
 router = APIRouter(prefix="/comments", tags=["comments"])
 
-@router.post("/", response_model=CommentResponse)
+@router.post("/", response_model=CommentResponse, status_code=status.HTTP_201_CREATED)
 async def create_comment_for_post(post_id: int, comment_data: CommentModel, db: Session = Depends(get_db),  user=Depends(auth_service.get_current_user)):
     """
     Function to create comment for post.

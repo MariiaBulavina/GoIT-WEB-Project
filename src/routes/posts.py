@@ -21,7 +21,7 @@ from src.schemas.rating import AverageRatingResponse
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
-@router.post("/", response_model=PostResponse)
+@router.post("/", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
 async def add_post(
     request: Request,
     file: UploadFile = File(...),

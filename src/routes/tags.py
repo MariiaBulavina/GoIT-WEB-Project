@@ -10,7 +10,7 @@ from src.database.models import User, UserRole
 
 router = APIRouter(prefix='/tags', tags=["tags"])
 
-@router.post("/", response_model=TagResponse)
+@router.post("/", response_model=TagResponse, status_code=status.HTTP_201_CREATED)
 async def create_new_tag(post_id: int, tag: TagModel, db: Session = Depends(get_db), user: User = Depends(auth_service.get_current_user)):
     """
     Function to create new tag.

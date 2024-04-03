@@ -4,16 +4,15 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from src.database.db import get_db
-from src.schemas.rating import RatingResponse, AverageRatingResponse
+from src.schemas.rating import RatingResponse
 from src.services.auth import auth_service
 from src.repository import rating as repository_rating
 from src.database.models import User, UserRole
-from src.repository.posts import get_post
 
 
 router = APIRouter(prefix="/rating", tags=['rating'])
 
-@router.post('/', response_model=RatingResponse)
+@router.post('/', response_model=RatingResponse, status_code=status.HTTP_201_CREATED)
 async def create_rating(
     post_id: int,
     rating: int = Query(description="From one to five stars", ge=1, le=5),

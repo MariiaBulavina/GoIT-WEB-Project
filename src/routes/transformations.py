@@ -1,6 +1,6 @@
 from typing import Literal
 
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Request, Depends, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -13,7 +13,7 @@ from src.database.models import User
 
 router = APIRouter(prefix="/transformations", tags=["transformations"])
 
-@router.post("/resize/{post_id}")
+@router.post("/resize/{post_id}", status_code=status.HTTP_201_CREATED)
 async def resize(
     request: Request,
     post_id: int,
@@ -39,7 +39,7 @@ async def resize(
     return StreamingResponse(qr_code_buffer, media_type="image/png")
 
 
-@router.post("/filter/{post_id}")
+@router.post("/filter/{post_id}", status_code=status.HTTP_201_CREATED)
 async def add_filter(
     request: Request,
     post_id: int,
