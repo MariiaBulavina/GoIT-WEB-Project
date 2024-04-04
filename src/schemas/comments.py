@@ -13,7 +13,7 @@ class CommentResponse(BaseModel):
     comment_text: str
     created_at: datetime
     updated_at: Optional[datetime]
-    post_id: int
+    post_id: Optional[int]
     user_id: int
 
     class Config:
