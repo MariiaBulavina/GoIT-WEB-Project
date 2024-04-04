@@ -150,6 +150,7 @@ async def logout(credentials: HTTPAuthorizationCredentials = Security(security),
     :param credentials: HTTPAuthorizationCredentials: Get the token from the request header
     :param db: Session: SQLAlchemy session object for accessing the database
     :param current_user: UserModel: the current user
+    
     return: dict: JSON message
     """
     token = credentials.credentials

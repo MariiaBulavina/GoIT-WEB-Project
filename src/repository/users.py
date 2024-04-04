@@ -212,6 +212,7 @@ async def add_to_blacklist(token: str, db: Session) -> None:
 
     :param token: str: The JWT that is being blacklisted.
     :param db: Session: SQLAlchemy session object for accessing the database
+
     return: None
     """
     blacklist_token = BlacklistToken(token=token, added_on=datetime.now())
@@ -227,6 +228,7 @@ async def is_blacklisted_token(token: str, db: Session) -> bool:
 
     :param token: str: The JWT that is being blacklisted.
     :param db: Session: SQLAlchemy session object for accessing the database
+    
     return: bool
     """
     blacklist_token = db.query(BlacklistToken).filter(BlacklistToken.token == token).first()
