@@ -53,26 +53,29 @@
 
 	* Users can only edit their comments but cannot delete them. Administrators and moderators can delete comments.
 	
-	
 
-*  *Swagger and Sphinx Documentation*
-
-	* [Swagger](https://github.com/MariiaBulavina/GoIT-WEB-Project/swagger)
-
-	* [Sphinx](https://github.com/MariiaBulavina/GoIT-WEB-Project/docs)
-
-  
-  
 
 ## Technologies
 
-* Python (Fastapi, SQLAlchemy, jose, alembic)
+* Python 
 
-* Cloudinary \ QRcode
+* Fastapi 
 
-* Pytest \ Unitest
+* SQLAlchemy
+
+* Alembic
+
+* Pydantic
+
+* Passlib
+
+* Cloudinary / QRcode
+
+* Pytest / Unittest
 
 * PostgreSQL
+
+* Swagger / Sphinx
 
   
 
@@ -108,4 +111,4 @@ Developer: [Sergiy Sobko](https://github.com/SobkoSergiy)
 
 Developer: [Taras Miroshnichenko]()
 
-Developer: [Roman Synyshyn]()
+Developer: [Roman Synyshyn](https://github.com/SRsr04)
