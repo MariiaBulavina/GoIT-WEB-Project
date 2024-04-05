@@ -104,6 +104,6 @@ Team Lead/Developer: [Mariia Bulavina](https://github.com/MariiaBulavina)
 
 Developer: [Sergiy Sobko](https://github.com/SobkoSergiy)
 
-Developer: [Taras Miroshnichenko]()
+Developer: [Taras Miroshnichenko](https://github.com/HtmlCompany)
 
 Developer: [Roman Synyshyn](https://github.com/SRsr04)
