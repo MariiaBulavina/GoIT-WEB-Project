@@ -20,7 +20,7 @@ class Auth:
     SECRET_KEY = settings.secret_key_jwt
     ALGORITHM = settings.algorithm
     oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/api/auth/login')
-    cache = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0)
+    cache = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0, password=settings.redis_password)
 
     def verify_password(self, plain_password, hashed_password):
         """
