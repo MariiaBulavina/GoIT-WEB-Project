@@ -83,12 +83,7 @@
 
 ## Installation
 
-* clone repository [repository](https://github.com/MariiaBulavina/GoIT-WEB-Project)
-
-* you need to set environment variables: example in .env.example file
-
-* simple way just run main.py: uvicorn.run(app, host="127.0.0.1", port=8000)
-
+* The application code is available in the GitHub repository [repository](https://github.com/MariiaBulavina/GoIT-WEB-Project). The application is deployed at https://photo-share-marspace.koyeb.app/
   
 
 ## Usage
